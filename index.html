@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Startup Factory™</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <!-- React & Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js">
+    </script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js">
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js">
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest">
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+        .sidebar {
+            background: #ffffff;
+            border-right: 1px solid #e9edf2;
+            width: 260px;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 24px 32px 80px;
+            transition: margin-left 0.3s ease;
+        }
+        .main-content.full {
+            margin-left: 0;
+        }
+        .module-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+            padding: 24px;
+            transition: box-shadow 0.2s;
+        }
+        .module-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+        }
+        .stat-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f4f9;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .nav-item:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .nav-item.active {
+            background: #eef2ff;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+        .nav-item .icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .badge-complete {
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.65rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .badge-pending {
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 0.65rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: #4f46e5;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover {
+            background: #4338ca;
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #1e293b;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        .btn-outline {
+            background: transparent;
+            color: #4f46e5;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1.5px solid #4f46e5;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover {
+            background: #eef2ff;
+        }
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.4rem;
+            position: relative;
+        }
+        .progress-ring.bg-ring {
+            background: conic-gradient(#4f46e5 var(--pct, 0%), #e9edf2 var(--pct, 0%));
+        }
+        .progress-ring .inner {
+            background: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.9rem;
+            transition: border 0.2s;
+            background: #fff;
+            color: #1e293b;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+        label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #475569;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+        }
+        .floating-advisor {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+            background: #4f46e5;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.35);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: none;
+        }
+        .floating-advisor:hover {
+            transform: scale(1.05);
+        }
+        .advisor-chat {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 380px;
+            max-height: 500px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e9edf2;
+        }
+        .advisor-chat.open {
+            display: flex;
+        }
+        .advisor-chat-header {
+            padding: 16px 20px;
+            background: #4f46e5;
+            color: #fff;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .advisor-chat-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            flex: 1;
+            max-height: 300px;
+        }
+        .advisor-chat-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #e9edf2;
+            display: flex;
+            gap: 10px;
+        }
+        .advisor-chat-footer input {
+            flex: 1;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1.5px solid #e2e8f0;
+        }
+        .advisor-chat-footer button {
+            background: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .msg-bot {
+            background: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 12px 12px 12px 4px;
+            margin-bottom: 8px;
+            max-width: 85%;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+        .msg-user {
+            background: #4f46e5;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 12px 12px 4px 12px;
+            margin-bottom: 8px;
+            margin-left: auto;
+            max-width: 85%;
+            font-size: 0.9rem;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .tag-green {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .tag-yellow {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+        .tag-red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .tag-blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 1024px) {
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            .main-content.full {
+                margin-left: 0;
+            }
+            .floating-advisor {
+                width: 50px;
+                height: 50px;
+                bottom: 20px;
+                right: 20px;
+            }
+            .advisor-chat {
+                width: calc(100% - 40px);
+                right: 20px;
+                bottom: 80px;
+            }
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #1e293b;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        .hamburger:hover {
+            background: #f1f5f9;
+        }
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+        }
+        .scrollable {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+        .blueprint-section {
+            page-break-inside: avoid;
+            margin-bottom: 24px;
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+        }
+        .modal-box .close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+        .modal-box .close:hover {
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+        // ─── Icons ──────────────────────────────────────────────
+        const Icons = {
+            LayoutDashboard: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+            Lightbulb: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-6 6c0 2.5 1.5 4.5 3 6h6c1.5-1.5 3-3.5 3-6a6 6 0 0 0-6-6z"/></svg>',
+            Target: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+            BarChart: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+            Package: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+            Code: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+            Palette: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="6" r="1"/><circle cx="6" cy="6" r="1"/><circle cx="18" cy="18" r="1"/><circle cx="6" cy="18" r="1"/></svg>',
+            DollarSign: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+            Rocket: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4 4 9c0 5-4 11-4 11s-4-6-4-11c0-5 4-9 4-9z"/><circle cx="12" cy="11" r="3"/></svg>',
+            Users: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+            FileText: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>',
+            MessageCircle: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+            Menu: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
+            X: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+            Download: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+            RefreshCw: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
+            ChevronRight: () =>
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+        };
+
+        function Icon({ name, className = '' }) {
+            const svg = Icons[name] ? Icons[name]() : '';
+            return <span className={className} dangerouslySetInnerHTML={{ __html: svg }} />;
+        }
+
+        // ─── Default Data ──────────────────────────────────────
+        function getDefaultStartup() {
+            return {
+                id: 'demo-1',
+                name: 'SmartClinic AI',
+                industry: 'Healthcare',
+                idea: 'AI scheduling assistant that automates patient appointments for small clinics',
+                problem: 'Small clinics waste 10+ hours per week manually scheduling patients',
+                solution: 'AI-powered scheduling that optimizes appointments and reduces no-shows',
+                targetCustomer: 'Small medical clinics with 2–10 staff members',
+                budget: 50000,
+                timeline: '6 months',
+                founderExperience: 'Intermediate',
+                teamSize: 3,
+                existingAssets: 'Prototype mockups, market research',
+                businessGoals: 'Reduce scheduling time by 80%, increase patient satisfaction',
+                validation: {
+                    problemSeverity: 85,
+                    marketSize: 75,
+                    competition: 60,
+                    customerPain: 90,
+                    differentiation: 70,
+                    revenuePotential: 80,
+                    complexity: 65,
+                    founderFit: 85,
+                    overall: 76
+                },
+                market: {
+                    personas: [
+                        { name: 'Dr. Sarah Chen', role: 'Clinic Owner', pain: 'Spends 5hrs/week on scheduling',
+                            goal: 'Automate to focus on patients' },
+                        { name: 'Mark Rivera', role: 'Clinic Administrator', pain: 'Juggles calls and calendars',
+                            goal: 'Reduce admin workload' },
+                        { name: 'Nina Patel', role: 'Patient', pain: 'Long hold times to book appointments',
+                            goal: 'Book online instantly' }
+                    ],
+                    segments: ['Small clinics (2–5 staff)', 'Medium clinics (6–15 staff)',
+                        'Specialty practices (dermatology, pediatrics)'
+                    ],
+                    trends: ['AI in healthcare growing 40% YoY', 'Patients prefer self-scheduling',
+                        'Integration with EHR systems'
+                    ],
+                    competitors: ['Zocdoc', 'PracticeSuite', 'Kareo', 'AdvancedMD'],
+                    swot: {
+                        strengths: 'AI optimization, ease of use, affordable',
+                        weaknesses: 'New entrant, limited brand awareness',
+                        opportunities: 'Telehealth integration, international expansion',
+                        threats: 'Established EHR vendors adding scheduling'
+                    },
+                    tam: 5200000,
+                    sam: 1800000,
+                    som: 320000
+                },
+                businessModel: {
+                    valueProposition: 'AI-powered scheduling that saves clinics 10+ hours weekly',
+                    revenueModel: 'Subscription (SaaS)',
+                    pricingStrategy: 'Tiered: $99/mo small, $199/mo medium, $349/mo large',
+                    salesChannels: 'Direct sales, webinars, partnerships',
+                    marketingChannels: 'LinkedIn, healthcare conferences, content marketing',
+                    customerAcquisition: 'Free 14-day trial, case studies, ROI calculator',
+                    retentionStrategy: 'Quarterly check-ins, feature updates, success manager',
+                    costStructure: 'Development, hosting, sales team, support',
+                    keyActivities: 'Product development, customer success, sales',
+                    keyResources: 'AI models, clinic partnerships, team expertise',
+                    keyPartners: 'EHR providers, medical associations, IT consultants'
+                },
+                product: {
+                    purpose: 'Automate patient scheduling for small clinics to save time and reduce no-shows',
+                    targetUser: 'Clinic administrators and doctors',
+                    coreFeatures: ['Smart appointment scheduling', 'Automated patient reminders (SMS/email)',
+                        'Calendar sync (Google, Outlook)', 'Patient self-scheduling portal'
+                    ],
+                    premiumFeatures: ['Predictive no-show alerts', 'Waitlist management',
+                        'Multi-location scheduling', 'Analytics dashboard'
+                    ],
+                    futureRoadmap: ['Telehealth integration', 'Billing integration', 'Patient intake forms',
+                        'AI voice assistant'
+                    ],
+                    userJourney: 'Sign up → Connect calendar → Set up services → Patient books → Reminders sent',
+                    userFlow: 'Patient requests appointment → AI finds optimal slot → Staff approves → Reminders sent',
+                    dataInputs: 'Patient demographics, clinic hours, staff schedules, service types',
+                    outputs: 'Scheduled appointments, reminder notifications, utilization reports',
+                    integrations: 'Google Calendar, Outlook, EHR (Epic, Cerner), Twilio',
+                    successMetrics: ['Scheduling time saved', 'No-show rate reduction', 'Patient satisfaction'],
+                    mvpDefinition: 'Core scheduling with calendar sync and reminders',
+                    featurePrioritization: 'Calendar sync → Smart scheduling → Reminders → Patient portal'
+                },
+                prototype: {
+                    pages: ['Dashboard', 'Schedule Calendar', 'Patients', 'Reports', 'Settings'],
+                    layout: 'Sidebar navigation with main content area, mobile-responsive',
+                    forms: ['Patient intake form', 'Appointment booking form', 'Clinic settings'],
+                    reports: ['Scheduling efficiency', 'Patient volume trends', 'Staff utilization'],
+                    charts: ['Weekly appointments', 'No-show rates', 'Revenue per provider'],
+                    adminPages: ['User management', 'Clinic settings', 'Billing'],
+                    navigation: 'Left sidebar with collapsible sections, top bar with notifications',
+                    sampleData: '20 demo patients, 50 appointments, 5 providers',
+                    requiredApis: 'Calendar API (Google/Outlook), SMS API (Twilio), Email API',
+                    suggestedTech: 'React, Node.js, PostgreSQL, OpenAI API, Tailwind CSS',
+                    deployment: 'Vercel (frontend), AWS (backend), Docker containers',
+                    uiRecommendations: 'Clean medical theme with calming blue tones, accessible',
+                    deepseekPrompt: 'Build a clinic scheduling assistant with AI optimization...',
+                    kimiPrompt: 'Create a full-stack scheduling system for small clinics...',
+                    buildSpec: 'Complete spec with API endpoints, data models, and UI wireframes'
+                },
+                brand: {
+                    companyName: 'SmartClinic AI',
+                    productName: 'SmartClinic AI',
+                    tagline: 'Smarter scheduling for better patient care',
+                    mission: 'Empower small clinics to focus on patients, not paperwork',
+                    vision: 'Every clinic running efficiently with AI-powered operations',
+                    brandVoice: 'Professional, caring, innovative, trustworthy',
+                    brandPersonality: 'Trustworthy, helpful, forward-thinking, empathetic',
+                    valueProposition: 'AI scheduling that saves clinics 10+ hours weekly',
+                    elevatorPitch: 'SmartClinic AI is the intelligent scheduling assistant that helps small clinics automate appointments, reduce no-shows, and improve patient satisfaction—so doctors can focus on care.',
+                    websiteHeadlines: ['Smarter Scheduling, Better Care', 'AI-Powered Clinic Operations',
+                        'Save 10+ Hours Weekly'
+                    ],
+                    logoDirection: 'Modern medical cross with AI circuit elements, soft blue gradient',
+                    colorPalette: '#0A7E8C (teal), #F5A623 (gold), #FFFFFF (white), #2C3E50 (navy)',
+                    typography: 'Inter, system-ui, sans-serif',
+                    domainSuggestions: ['smartclinic.ai', 'smartclinicai.com', 'clinicassist.ai']
+                },
+                pricing: {
+                    monthlyPrice: 99,
+                    customers: 50,
+                    growth: 12,
+                    churn: 3,
+                    cac: 200,
+                    ltv: 1200,
+                    monthlyRevenue: 4950,
+                    mrr: 4950,
+                    arr: 59400,
+                    breakEven: 8,
+                    cashRunway: 14
+                },
+                launch: {
+                    landingPageChecklist: ['Hero section with value prop', 'Features grid', 'Pricing table',
+                        'Testimonials', 'FAQ', 'Contact form'
+                    ],
+                    productHuntPlan: 'Launch with early access program, feature on PH, engage community',
+                    marketingTimeline: 'Pre-launch (30 days): content, waitlist. Launch week: PH, email blast. Post-launch: webinars, case studies',
+                    socialMediaStrategy: 'LinkedIn for B2B, Twitter for tech, Facebook for community',
+                    emailCampaign: 'Weekly updates to waitlist, launch announcement, feature spotlights',
+                    betaProgram: '10 clinics for 30-day free trial with feedback sessions',
+                    launchChecklist: ['Finalize MVP', 'Create landing page', 'Set up analytics', 'Prepare support',
+                        'Test all flows'
+                    ],
+                    first100Customers: 'Target local clinics, offer 20% lifetime discount, referral program',
+                    ninetyDayRoadmap: 'Week 1-2: Launch & PR. Week 3-4: Feedback collection. Week 5-8: Iterate & improve. Week 9-12: Scale'
+                },
+                investor: {
+                    executiveSummary: 'SmartClinic AI automates clinic scheduling using AI, saving 10+ hours weekly and reducing no-shows by 30%.',
+                    problem: 'Small clinics waste 10+ hours weekly on manual scheduling, leading to burnout and lost revenue.',
+                    solution: 'AI-powered scheduling assistant that optimizes appointments and automates reminders.',
+                    market: 'Healthcare scheduling market is $5.2B TAM, growing at 12% CAGR with 40% AI adoption YoY.',
+                    product: 'SaaS platform with AI scheduling, calendar sync, patient portal, and analytics.',
+                    businessModel: 'Subscription-based SaaS with tiered pricing ($99–$349/mo).',
+                    competitiveAdvantage: 'AI optimization specifically for small clinics, ease of use, EHR integrations.',
+                    goToMarket: 'Direct sales to clinics, partnerships with EHRs, content marketing.',
+                    financialProjection: 'Projecting $1.2M ARR in year 2, $4.5M in year 3.',
+                    fundingAsk: '$500,000 seed round for team expansion and product development.',
+                    milestones: 'MVP launch (Month 3), 100 clinics (Month 6), $1M ARR (Month 18)',
+                    riskAnalysis: 'Competition from EHR vendors, adoption resistance, AI accuracy, data privacy.',
+                    pitchSummary: 'SmartClinic AI is transforming clinic scheduling with AI—backed by a strong team, growing market, and validated demand.'
+                },
+                moduleCompletion: {
+                    ideaIntake: true,
+                    opportunityValidator: true,
+                    marketAnalysis: true,
+                    businessModel: true,
+                    productArchitect: true,
+                    prototypeBuilder: true,
+                    brandStudio: true,
+                    pricingSimulator: true,
+                    launchPlanner: true,
+                    investorCenter: true,
+                    startupBlueprint: false
+                },
+                advisorMessages: [
+                    { from: 'bot', text: '👋 Hi! I\'m your AI Startup Advisor. Ask me anything about your startup.' }
+                ]
+            };
+        }
+
+        // ─── Storage ──────────────────────────────────────────
+        function loadData() {
+            try {
+                const raw = localStorage.getItem('aistartup_data');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    // merge with defaults to handle new fields
+                    const def = getDefaultStartup();
+                    return { ...def, ...parsed };
+                }
+            } catch (e) { /* ignore */ }
+            return getDefaultStartup();
+        }
+
+        function saveData(data) {
+            try {
+                localStorage.setItem('aistartup_data', JSON.stringify(data));
+            } catch (e) { /* ignore */ }
+        }
+
+        // ─── Helper: calculate scores ──────────────────────
+        function calcReadiness(data) {
+            const v = data.validation || {};
+            const vals = [v.problemSeverity, v.marketSize, v.competition, v.customerPain, v.differentiation,
+                v.revenuePotential, v.complexity, v.founderFit
+            ].filter(Boolean);
+            const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+            const completion = data.moduleCompletion || {};
+            const done = Object.values(completion).filter(Boolean).length;
+            const total = Object.keys(completion).length || 11;
+            const pct = Math.round((done / total) * 100);
+            const scores = {
+                validation: avg,
+                businessModel: 72,
+                product: 68,
+                brand: 65,
+                pricing: 70,
+                financials: 62,
+                launch: 55,
+                documentation: 50,
+                overall: 0
+            };
+            // weighted average
+            const weights = { validation: 0.25, businessModel: 0.15, product: 0.15, brand: 0.10, pricing: 0.10,
+                financials: 0.10, launch: 0.08, documentation: 0.07 };
+            let totalW = 0;
+            let sumW = 0;
+            for (const k of Object.keys(weights)) {
+                const w = weights[k];
+                totalW += w;
+                sumW += (scores[k] || 0) * w;
+            }
+            scores.overall = Math.round(sumW / totalW);
+            return { ...scores, completion: pct };
+        }
+
+        // ─── App ──────────────────────────────────────────────
+        function App() {
+            const [data, setData] = useState(() => loadData());
+            const [activeModule, setActiveModule] = useState('dashboard');
+            const [sidebarOpen, setSidebarOpen] = useState(false);
+            const [advisorOpen, setAdvisorOpen] = useState(false);
+            const [advisorInput, setAdvisorInput] = useState('');
+            const [showBlueprint, setShowBlueprint] = useState(false);
+            const chatEndRef = useRef(null);
+
+            const save = useCallback((newData) => {
+                const merged = { ...data, ...newData };
+                setData(merged);
+                saveData(merged);
+            }, [data]);
+
+            const updateField = useCallback((path, value) => {
+                const keys = path.split('.');
+                let cur = { ...data };
+                let ref = cur;
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (!ref[keys[i]]) ref[keys[i]] = {};
+                    ref = ref[keys[i]];
+                }
+                ref[keys[keys.length - 1]] = value;
+                save(cur);
+            }, [data, save]);
+
+            const resetData = useCallback(() => {
+                if (confirm('Reset all data? This cannot be undone.')) {
+                    const def = getDefaultStartup();
+                    save(def);
+                }
+            }, [save]);
+
+            const loadDemo = useCallback(() => {
+                const def = getDefaultStartup();
+                save(def);
+            }, [save]);
+
+            const toggleModule = (mod) => {
+                setActiveModule(mod);
+                if (window.innerWidth < 768) setSidebarOpen(false);
+            };
+
+            const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+            const handleAdvisorAsk = () => {
+                if (!advisorInput.trim()) return;
+                const msg = advisorInput.trim();
+                const msgs = [...(data.advisorMessages || []), { from: 'user', text: msg }];
+                // bot response
+                const lower = msg.toLowerCase();
+                let reply = 'That\'s a great question! Let me think about that.';
+                if (lower.includes('strong') || lower.includes('idea')) {
+                    reply =
+                    'Your startup idea has strong potential! The problem is clearly defined and the solution addresses a real pain point. Your validation score is ' +
+                        Math.round((data.validation?.overall || 0)) + '%. Focus on refining your differentiation.';
+                } else if (lower.includes('pricing') || lower.includes('price')) {
+                    reply =
+                        'Your pricing of $' + (data.pricing?.monthlyPrice || 99) +
+                        '/mo is competitive. With ' + (data.pricing?.customers || 50) +
+                        ' customers, you\'re on track. Consider testing with A/B pricing.';
+                } else if (lower.includes('mvp')) {
+                    reply =
+                        'Your MVP should focus on core scheduling and calendar sync. The feature prioritization looks solid—stick to the must-haves first.';
+                } else if (lower.includes('competition') || lower.includes('competitor')) {
+                    reply =
+                        'You face competition from ' + (data.market?.competitors?.join(', ') || 'established players') +
+                        '. Your differentiation is ' + (data.validation?.differentiation || 70) +
+                        '%—highlight your AI optimization for small clinics.';
+                } else if (lower.includes('missing')) {
+                    reply =
+                        'Consider adding: 1) More detailed financial projections, 2) A clearer go-to-market strategy, 3) Customer validation case studies.';
+                } else if (lower.includes('launch')) {
+                    reply =
+                        'Your 90-day launch roadmap is well-structured. Focus on building your waitlist and beta program to validate before full launch.';
+                } else {
+                    reply =
+                        'I\'d recommend reviewing your ' + activeModule.replace(/([A-Z])/g, ' $1') +
+                        ' module for more insights. Every decision connects to the bigger picture.';
+                }
+                msgs.push({ from: 'bot', text: reply });
+                save({ advisorMessages: msgs });
+                setAdvisorInput('');
+                setTimeout(() => {
+                    if (chatEndRef.current) chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
+                }, 50);
+            };
+
+            const readiness = useMemo(() => calcReadiness(data), [data]);
+
+            // ─── Navigation ──────────────────────────────────
+            const navItems = [
+                { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
+                { id: 'idea', label: 'Idea Intake', icon: 'Lightbulb' },
+                { id: 'validator', label: 'Opportunity Validator', icon: 'Target' },
+                { id: 'market', label: 'Market Analysis', icon: 'BarChart' },
+                { id: 'business', label: 'Business Model', icon: 'Package' },
+                { id: 'product', label: 'Product Architect', icon: 'Code' },
+                { id: 'prototype', label: 'Prototype Builder', icon: 'FileText' },
+                { id: 'brand', label: 'Brand Studio', icon: 'Palette' },
+                { id: 'pricing', label: 'Pricing Simulator', icon: 'DollarSign' },
+                { id: 'launch', label: 'Launch Planner', icon: 'Rocket' },
+                { id: 'investor', label: 'Investor Center', icon: 'Users' },
+                { id: 'blueprint', label: 'Startup Blueprint', icon: 'FileText' },
+            ];
+
+            const isComplete = (id) => {
+                const map = {
+                    idea: 'ideaIntake',
+                    validator: 'opportunityValidator',
+                    market: 'marketAnalysis',
+                    business: 'businessModel',
+                    product: 'productArchitect',
+                    prototype: 'prototypeBuilder',
+                    brand: 'brandStudio',
+                    pricing: 'pricingSimulator',
+                    launch: 'launchPlanner',
+                    investor: 'investorCenter',
+                    blueprint: 'startupBlueprint'
+                };
+                return data.moduleCompletion?.[map[id]] || false;
+            };
+
+            // ─── Render ──────────────────────────────────────
+            return (
+                <div className="min-h-screen bg-[#f8fafc]">
+
+                    {/* Sidebar */}
+                    <div className={`sidebar ${sidebarOpen ? 'open' : 'closed'} md:open`}>
+                        <div className="p-5 border-b border-[#e9edf2] flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-[#4f46e5] flex items-center justify-center text-white font-bold text-sm">
+                                AI
+                            </div>
+                            <div>
+                                <div className="font-bold text-[#0f172a] text-sm">AI Startup Factory</div>
+                                <div className="text-[10px] text-[#64748b] font-medium">™</div>
+                            </div>
+                        </div>
+                        <div className="p-3">
+                            {navItems.map((item) => {
+                                const active = activeModule === item.id;
+                                const done = isComplete(item.id);
+                                return (
+                                    <div
+                                        key={item.id}
+                                        className={`nav-item ${active ? 'active' : ''}`}
+                                        onClick={() => toggleModule(item.id)}
+                                    >
+                                        <Icon name={item.icon} className="icon" />
+                                        <span className="flex-1">{item.label}</span>
+                                        {item.id !== 'dashboard' && (
+                                            <span className={done ? 'badge-complete' : 'badge-pending'}>
+                                                {done ? '✓ Done' : 'Pending'}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="p-4 border-t border-[#e9edf2] mt-auto">
+                            <button onClick={resetData} className="text-xs text-[#94a3b8] hover:text-[#ef4444] font-medium w-full text-left px-2 py-1 rounded">
+                                Reset Data
+                            </button>
+                            <button onClick={loadDemo} className="text-xs text-[#94a3b8] hover:text-[#4f46e5] font-medium w-full text-left px-2 py-1 rounded mt-1">
+                                Load Demo Startup
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Main */}
+                    <div className={`main-content ${sidebarOpen ? '' : 'full'}`}>
+                        {/* Top bar */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-3">
+                                <button className="hamburger md:hidden" onClick={toggleSidebar}>
+                                    <span dangerouslySetInnerHTML={{ __html: Icons.Menu() }} />
+                                </button>
+                                <h1 className="text-xl font-bold text-[#0f172a]">
+                                    {navItems.find(n => n.id === activeModule)?.label || 'Dashboard'}
+                                </h1>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                                <span className="text-[#64748b]">Score</span>
+                                <span className="font-bold text-[#4f46e5]">{readiness.overall}%</span>
+                                <span className="w-px h-6 bg-[#e9edf2]" />
+                                <span className="text-[#64748b]">Progress</span>
+                                <span className="font-bold">{readiness.completion}%</span>
+                            </div>
+                        </div>
+
+                        {/* Module content */}
+                        <div>
+                            {activeModule === 'dashboard' && <Dashboard data={data} save={save} readiness={readiness} />}
+                            {activeModule === 'idea' && <IdeaIntake data={data} updateField={updateField} />}
+                            {activeModule === 'validator' && <Validator data={data} />}
+                            {activeModule === 'market' && <MarketAnalysis data={data} updateField={updateField} />}
+                            {activeModule === 'business' && <BusinessModel data={data} updateField={updateField} />}
+                            {activeModule === 'product' && <ProductArchitect data={data} updateField={updateField} />}
+                            {activeModule === 'prototype' && <PrototypeBuilder data={data} updateField={updateField} />}
+                            {activeModule === 'brand' && <BrandStudio data={data} updateField={updateField} />}
+                            {activeModule === 'pricing' && <PricingSimulator data={data} updateField={updateField} />}
+                            {activeModule === 'launch' && <LaunchPlanner data={data} updateField={updateField} />}
+                            {activeModule === 'investor' && <InvestorCenter data={data} updateField={updateField} />}
+                            {activeModule === 'blueprint' && <BlueprintView data={data} setShowBlueprint={setShowBlueprint} />}
+                        </div>
+                    </div>
+
+                    {/* Floating Advisor */}
+                    <button className="floating-advisor" onClick={() => setAdvisorOpen(!advisorOpen)}>
+                        <span dangerouslySetInnerHTML={{ __html: Icons.MessageCircle() }} />
+                    </button>
+
+                    <div className={`advisor-chat ${advisorOpen ? 'open' : ''}`}>
+                        <div className="advisor-chat-header">
+                            <span>🤖 AI Startup Advisor</span>
+                            <button onClick={() => setAdvisorOpen(false)} style={{ background: 'none', border: 'none',
+                                    color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+                        </div>
+                        <div className="advisor-chat-body" ref={chatEndRef}>
+                            {(data.advisorMessages || []).map((m, i) => (
+                                <div key={i} className={m.from === 'bot' ? 'msg-bot' : 'msg-user'}>
+                                    {m.text}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="advisor-chat-footer">
+                            <input
+                                placeholder="Ask about your startup..."
+                                value={advisorInput}
+                                onChange={(e) => setAdvisorInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAdvisorAsk()}
+                            />
+                            <button onClick={handleAdvisorAsk}>Send</button>
+                        </div>
+                    </div>
+
+                    {/* Blueprint modal */}
+                    {showBlueprint && (
+                        <div className="modal-overlay" onClick={() => setShowBlueprint(false)}>
+                            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                                <button className="close" onClick={() => setShowBlueprint(false)}>✕</button>
+                                <h2 className="text-2xl font-bold mb-4">📄 Startup Blueprint</h2>
+                                <div className="scrollable" id="blueprint-content">
+                                    <BlueprintContent data={data} />
+                                </div>
+                                <div className="mt-4 flex gap-3">
+                                    <button className="btn-primary" onClick={() => window.print()}>
+                                        <span dangerouslySetInnerHTML={{ __html: Icons.Download() }} /> Print
+                                    </button>
+                                    <button className="btn-secondary" onClick={() => setShowBlueprint(false)}>Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // ─── Dashboard ──────────────────────────────────────
+        function Dashboard({ data, save, readiness }) {
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            useEffect(() => {
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    if (chartInstance.current) chartInstance.current.destroy();
+                    chartInstance.current = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Validation', 'Business', 'Product', 'Brand', 'Pricing', 'Financials',
+                            'Launch'],
+                            datasets: [{
+                                label: 'Startup Readiness',
+                                data: [
+                                    readiness.validation || 0,
+                                    readiness.businessModel || 0,
+                                    readiness.product || 0,
+                                    readiness.brand || 0,
+                                    readiness.pricing || 0,
+                                    readiness.financials || 0,
+                                    readiness.launch || 0
+                                ],
+                                backgroundColor: 'rgba(79,70,229,0.15)',
+                                borderColor: '#4f46e5',
+                                pointBackgroundColor: '#4f46e5',
+                                pointBorderColor: '#fff',
+                                borderWidth: 2,
+                                pointRadius: 4,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { r: { min: 0, max: 100, ticks: { stepSize: 20, font: { size: 9 } } } },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+            }, [readiness]);
+
+            const completion = data.moduleCompletion || {};
+            const total = Object.keys(completion).length || 11;
+            const done = Object.values(completion).filter(Boolean).length;
+
+            return (
+                <div>
+                    <div className="grid-3 mb-6">
+                        <div className="stat-card">
+                            <div className="text-[#64748b] text-sm">Overall Startup Score</div>
+                            <div className="text-3xl font-bold text-[#0f172a]">{readiness.overall}%</div>
+                            <div className="text-xs text-[#64748b] mt-1">Based on 7 readiness factors</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="text-[#64748b] text-sm">Completion Progress</div>
+                            <div className="text-3xl font-bold text-[#0f172a]">{Math.round((done / total) * 100)}%</div>
+                            <div className="text-xs text-[#64748b] mt-1">{done} of {total} modules complete</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="text-[#64748b] text-sm">Estimated Time to Launch</div>
+                            <div className="text-3xl font-bold text-[#0f172a]">{data.pricing?.cashRunway || 12} weeks</div>
+                            <div className="text-xs text-[#64748b] mt-1">Based on your timeline and resources</div>
+                        </div>
+                    </div>
+
+                    <div className="grid-2">
+                        <div className="module-card">
+                            <h3 className="font-semibold text-[#0f172a] mb-3">Startup Readiness Radar</h3>
+                            <div className="chart-container" style={{ height: '220px' }}>
+                                <canvas ref={chartRef}></canvas>
+                            </div>
+                        </div>
+                        <div className="module-card">
+                            <h3 className="font-semibold text-[#0f172a] mb-3">Module Status</h3>
+                            <div className="space-y-2">
+                                {Object.entries(completion).map(([k, v]) => {
+                                    const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                                    return (
+                                        <div key={k} className="flex items-center justify-between">
+                                            <span className="text-sm text-[#475569]">{label}</span>
+                                            <span className={v ? 'badge-complete' : 'badge-pending'}>
+                                                {v ? '✓ Complete' : 'Pending'}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid-2 mt-6">
+                        <div className="module-card">
+                            <h3 className="font-semibold text-[#0f172a] mb-2">Current Startup</h3>
+                            <p className="text-lg font-bold">{data.name || 'Not set'}</p>
+                            <p className="text-sm text-[#64748b]">{data.industry || 'No industry'}</p>
+                            <p className="text-sm text-[#475569] mt-2">{data.idea || 'No idea defined'}</p>
+                        </div>
+                        <div className="module-card">
+                            <h3 className="font-semibold text-[#0f172a] mb-2">Quick Actions</h3>
+                            <div className="flex flex-wrap gap-3">
+                                <button className="btn-primary text-sm" onClick={() => document.querySelector(
+                                    '.nav-item')?.click?.()}>Continue Where You Left</button>
+                                <button className="btn-secondary text-sm" onClick={() => {
+                                    const def = getDefaultStartup();
+                                    save(def);
+                                }}>Load Demo</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Idea Intake ────────────────────────────────────
+        function IdeaIntake({ data, updateField }) {
+            const fields = [
+                { key: 'name', label: 'Startup Name', type: 'text' },
+                { key: 'idea', label: 'Startup Idea', type: 'textarea' },
+                { key: 'industry', label: 'Industry', type: 'text' },
+                { key: 'problem', label: 'Problem Being Solved', type: 'textarea' },
+                { key: 'targetCustomer', label: 'Target Customer', type: 'text' },
+                { key: 'budget', label: 'Budget ($)', type: 'number' },
+                { key: 'timeline', label: 'Timeline', type: 'text', placeholder: 'e.g. 6 months' },
+                { key: 'founderExperience', label: 'Founder Experience', type: 'select', options: ['Beginner',
+                        'Intermediate', 'Advanced'
+                    ] },
+                { key: 'teamSize', label: 'Team Size', type: 'number' },
+                { key: 'existingAssets', label: 'Existing Assets', type: 'textarea' },
+                { key: 'businessGoals', label: 'Business Goals', type: 'textarea' },
+            ];
+
+            const handleChange = (key, val) => {
+                updateField(key, val);
+                // mark complete
+                const comp = { ...data.moduleCompletion };
+                comp.ideaIntake = true;
+                updateField('moduleCompletion', comp);
+            };
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Idea Intake</h2>
+                    <p className="text-[#64748b] mb-6">Define the core elements of your startup idea.</p>
+                    <div className="grid-2">
+                        {fields.map((f) => (
+                            <div key={f.key} className="form-group">
+                                <label>{f.label}</label>
+                                {f.type === 'select' ? (
+                                    <select
+                                        value={data[f.key] || ''}
+                                        onChange={(e) => handleChange(f.key, e.target.value)}
+                                    >
+                                        <option value="">Select...</option>
+                                        {(f.options || []).map(o => <option key={o} value={o}>{o}</option>)}
+                                    </select>
+                                ) : f.type === 'textarea' ? (
+                                    <textarea
+                                        rows={3}
+                                        value={data[f.key] || ''}
+                                        onChange={(e) => handleChange(f.key, e.target.value)}
+                                        placeholder={f.placeholder || ''}
+                                    />
+                                ) : (
+                                    <input
+                                        type={f.type}
+                                        value={data[f.key] || ''}
+                                        onChange={(e) => handleChange(f.key, e.target.value)}
+                                        placeholder={f.placeholder || ''}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-4 p-4 bg-[#f1f5f9] rounded-xl">
+                        <p className="text-sm text-[#475569]">💡 <strong>Tip:</strong> A clear, specific problem statement is the foundation of a successful startup. Be as concrete as possible.</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Opportunity Validator ──────────────────────────
+        function Validator({ data }) {
+            const v = data.validation || {};
+            const dims = [
+                { key: 'problemSeverity', label: 'Problem Severity' },
+                { key: 'marketSize', label: 'Market Size' },
+                { key: 'competition', label: 'Competition' },
+                { key: 'customerPain', label: 'Customer Pain' },
+                { key: 'differentiation', label: 'Differentiation' },
+                { key: 'revenuePotential', label: 'Revenue Potential' },
+                { key: 'complexity', label: 'Complexity' },
+                { key: 'founderFit', label: 'Founder Fit' },
+            ];
+
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            useEffect(() => {
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    if (chartInstance.current) chartInstance.current.destroy();
+                    const vals = dims.map(d => v[d.key] || 0);
+                    chartInstance.current = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: dims.map(d => d.label),
+                            datasets: [{
+                                label: 'Score',
+                                data: vals,
+                                backgroundColor: 'rgba(79,70,229,0.15)',
+                                borderColor: '#4f46e5',
+                                pointBackgroundColor: '#4f46e5',
+                                pointBorderColor: '#fff',
+                                borderWidth: 2,
+                                pointRadius: 4,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { r: { min: 0, max: 100, ticks: { stepSize: 20, font: { size: 9 } } } },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+            }, [v]);
+
+            const avg = dims.reduce((s, d) => s + (v[d.key] || 0), 0) / dims.length || 0;
+            const strengths = dims.filter(d => (v[d.key] || 0) >= 70).map(d => d.label);
+            const weaknesses = dims.filter(d => (v[d.key] || 0) < 50).map(d => d.label);
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Opportunity Validator</h2>
+                    <p className="text-[#64748b] mb-6">Evaluate your startup's potential across key dimensions.</p>
+
+                    <div className="grid-2 mb-6">
+                        <div className="chart-container" style={{ height: '240px' }}>
+                            <canvas ref={chartRef}></canvas>
+                        </div>
+                        <div>
+                            <div className="text-3xl font-bold text-[#4f46e5]">{Math.round(avg)}%</div>
+                            <div className="text-sm text-[#64748b]">AI Opportunity Score</div>
+                            <div className="mt-4 space-y-2">
+                                {dims.map(d => (
+                                    <div key={d.key}>
+                                        <div className="flex justify-between text-sm">
+                                            <span>{d.label}</span>
+                                            <span className="font-medium">{v[d.key] || 0}%</span>
+                                        </div>
+                                        <div className="h-1.5 bg-[#e9edf2] rounded-full overflow-hidden">
+                                            <div className="h-full bg-[#4f46e5] rounded-full" style={{ width: (v[
+                                                    d.key] || 0) + '%' }} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid-2">
+                        <div className="p-4 bg-[#dcfce7] rounded-xl">
+                            <h4 className="font-semibold text-[#166534]">✅ Strengths</h4>
+                            <ul className="text-sm text-[#166534] mt-1 list-disc list-inside">
+                                {strengths.length ? strengths.map(s => <li key={s}>{s}</li>) :
+                                    <li>Keep refining—you're on the right track</li>}
+                            </ul>
+                        </div>
+                        <div className="p-4 bg-[#fee2e2] rounded-xl">
+                            <h4 className="font-semibold text-[#991b1b]">⚠️ Weaknesses</h4>
+                            <ul className="text-sm text-[#991b1b] mt-1 list-disc list-inside">
+                                {weaknesses.length ? weaknesses.map(s => <li key={s}>{s}</li>) :
+                                    <li>No major weaknesses detected</li>}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 p-4 bg-[#f1f5f9] rounded-xl">
+                        <p className="text-sm text-[#475569]">💡 <strong>Recommendation:</strong> {
+                            avg >= 70 ? 'Your startup shows strong potential. Focus on execution and go-to-market.'
+                            : avg >= 50 ? 'Your idea has promise. Work on improving your weakest dimensions.'
+                            : 'Consider pivoting or refining your idea. Talk to more customers.'
+                        }</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Market Analysis ──────────────────────────────
+        function MarketAnalysis({ data, updateField }) {
+            const m = data.market || {};
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Market Analysis</h2>
+                    <p className="text-[#64748b] mb-6">Understand your market, customers, and competition.</p>
+
+                    <div className="grid-2">
+                        <div>
+                            <h4 className="font-semibold mb-2">Target Personas</h4>
+                            {(m.personas || []).map((p, i) => (
+                                <div key={i} className="bg-[#f8fafc] p-3 rounded-xl mb-2 text-sm">
+                                    <div className="font-medium">{p.name}</div>
+                                    <div className="text-[#64748b]">{p.role}</div>
+                                    <div className="text-xs text-[#475569]">Pain: {p.pain}</div>
+                                    <div className="text-xs text-[#475569]">Goal: {p.goal}</div>
+                                </div>
+                            ))}
+                            <button className="btn-outline text-sm mt-2" onClick={() => {
+                                const personas = [...(m.personas || [])];
+                                personas.push({ name: 'New Persona', role: 'Role', pain: 'Pain point',
+                                    goal: 'Goal' });
+                                updateField('market.personas', personas);
+                            }}>+ Add Persona</button>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-2">Market Sizing</h4>
+                            <div className="space-y-2">
+                                <div><span className="text-sm text-[#64748b]">TAM</span> <span className="float-right font-medium">$
+                                        {(m.tam || 0).toLocaleString()}</span></div>
+                                <div><span className="text-sm text-[#64748b]">SAM</span> <span className="float-right font-medium">$
+                                        {(m.sam || 0).toLocaleString()}</span></div>
+                                <div><span className="text-sm text-[#64748b]">SOM</span> <span className="float-right font-medium">$
+                                        {(m.som || 0).toLocaleString()}</span></div>
+                            </div>
+                            <div className="mt-4">
+                                <label className="text-sm">TAM</label>
+                                <input type="number" value={m.tam || 0} onChange={(e) => updateField('market.tam',
+                                    Number(e.target.value))} />
+                            </div>
+                            <div className="mt-2">
+                                <label className="text-sm">SAM</label>
+                                <input type="number" value={m.sam || 0} onChange={(e) => updateField('market.sam',
+                                    Number(e.target.value))} />
+                            </div>
+                            <div className="mt-2">
+                                <label className="text-sm">SOM</label>
+                                <input type="number" value={m.som || 0} onChange={(e) => updateField('market.som',
+                                    Number(e.target.value))} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid-2 mt-4">
+                        <div>
+                            <h4 className="font-semibold mb-2">Competitors</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {(m.competitors || []).map((c, i) => (
+                                    <span key={i} className="tag tag-blue">{c}</span>
+                                ))}
+                            </div>
+                            <input className="mt-2 text-sm" placeholder="Add competitor" onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.target.value.trim()) {
+                                    const comps = [...(m.competitors || [])];
+                                    comps.push(e.target.value.trim());
+                                    updateField('market.competitors', comps);
+                                    e.target.value = '';
+                                }
+                            }} />
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-2">Market Trends</h4>
+                            <ul className="list-disc list-inside text-sm text-[#475569]">
+                                {(m.trends || []).map((t, i) => <li key={i}>{t}</li>)}
+                            </ul>
+                            <input className="mt-2 text-sm" placeholder="Add trend" onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.target.value.trim()) {
+                                    const trends = [...(m.trends || [])];
+                                    trends.push(e.target.value.trim());
+                                    updateField('market.trends', trends);
+                                    e.target.value = '';
+                                }
+                            }} />
+                        </div>
+                    </div>
+
+                    <div className="mt-4 p-4 bg-[#f1f5f9] rounded-xl">
+                        <h4 className="font-semibold text-sm">SWOT Analysis</h4>
+                        <div className="grid-2 text-sm mt-2">
+                            <div><span className="font-medium text-green-700">Strengths:</span> {m.swot?.strengths ||
+                                'Not defined'}</div>
+                            <div><span className="font-medium text-red-700">Weaknesses:</span> {m.swot?.weaknesses ||
+                                'Not defined'}</div>
+                            <div><span className="font-medium text-blue-700">Opportunities:</span> {m.swot
+                                    ?.opportunities || 'Not defined'}</div>
+                            <div><span className="font-medium text-yellow-700">Threats:</span> {m.swot?.threats ||
+                                    'Not defined'}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Business Model ────────────────────────────────
+        function BusinessModel({ data, updateField }) {
+            const b = data.businessModel || {};
+            const fields = [
+                { key: 'valueProposition', label: 'Value Proposition' },
+                { key: 'revenueModel', label: 'Revenue Model' },
+                { key: 'pricingStrategy', label: 'Pricing Strategy' },
+                { key: 'salesChannels', label: 'Sales Channels' },
+                { key: 'marketingChannels', label: 'Marketing Channels' },
+                { key: 'customerAcquisition', label: 'Customer Acquisition' },
+                { key: 'retentionStrategy', label: 'Retention Strategy' },
+                { key: 'costStructure', label: 'Cost Structure' },
+                { key: 'keyActivities', label: 'Key Activities' },
+                { key: 'keyResources', label: 'Key Resources' },
+                { key: 'keyPartners', label: 'Key Partners' },
+            ];
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Business Model Builder</h2>
+                    <p className="text-[#64748b] mb-6">Define how your startup creates, delivers, and captures value.</p>
+                    <div className="grid-2">
+                        {fields.map(f => (
+                            <div key={f.key} className="form-group">
+                                <label>{f.label}</label>
+                                <textarea rows={2} value={b[f.key] || ''} onChange={(e) => updateField(
+                                    'businessModel.' + f.key, e.target.value)} />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-4 p-4 bg-[#f1f5f9] rounded-xl">
+                        <p className="text-sm text-[#475569]">💡 A strong business model aligns value creation with customer needs and revenue generation.</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Product Architect ─────────────────────────────
+        function ProductArchitect({ data, updateField }) {
+            const p = data.product || {};
+            const sections = [
+                { key: 'purpose', label: 'Product Purpose', rows: 2 },
+                { key: 'targetUser', label: 'Target User', rows: 2 },
+                { key: 'userJourney', label: 'User Journey', rows: 2 },
+                { key: 'userFlow', label: 'User Flow', rows: 2 },
+                { key: 'dataInputs', label: 'Data Inputs', rows: 2 },
+                { key: 'outputs', label: 'Outputs', rows: 2 },
+                { key: 'integrations', label: 'Integrations', rows: 2 },
+                { key: 'mvpDefinition', label: 'MVP Definition', rows: 2 },
+            ];
+
+            const listFields = [
+                { key: 'coreFeatures', label: 'Core Features' },
+                { key: 'premiumFeatures', label: 'Premium Features' },
+                { key: 'futureRoadmap', label: 'Future Roadmap' },
+                { key: 'successMetrics', label: 'Success Metrics' },
+            ];
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Product Architect</h2>
+                    <p className="text-[#64748b] mb-6">Design your product's purpose, features, and user experience.</p>
+
+                    <div className="grid-2">
+                        {sections.map(s => (
+                            <div key={s.key} className="form-group">
+                                <label>{s.label}</label>
+                                <textarea rows={s.rows} value={p[s.key] || ''} onChange={(e) => updateField(
+                                    'product.' + s.key, e.target.value)} />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid-2 mt-2">
+                        {listFields.map(lf => (
+                            <div key={lf.key} className="form-group">
+                                <label>{lf.label}</label>
+                                <div className="flex flex-wrap gap-2 mb-1">
+                                    {(p[lf.key] || []).map((item, i) => (
+                                        <span key={i} className="tag tag-blue">{item}</span>
+                                    ))}
+                                </div>
+                                <input className="text-sm" placeholder={`Add ${lf.label}`} onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && e.target.value.trim()) {
+                                        const list = [...(p[lf.key] || [])];
+                                        list.push(e.target.value.trim());
+                                        updateField('product.' + lf.key, list);
+                                        e.target.value = '';
+                                    }
+                                }} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Prototype Builder ─────────────────────────────
+        function PrototypeBuilder({ data, updateField }) {
+            const p = data.prototype || {};
+            const fields = [
+                { key: 'pages', label: 'Prototype Pages' },
+                { key: 'layout', label: 'Layout', rows: 2 },
+                { key: 'forms', label: 'Forms' },
+                { key: 'reports', label: 'Reports' },
+                { key: 'charts', label: 'Charts' },
+                { key: 'adminPages', label: 'Admin Pages' },
+                { key: 'navigation', label: 'Navigation', rows: 2 },
+                { key: 'sampleData', label: 'Sample Data', rows: 2 },
+                { key: 'requiredApis', label: 'Required APIs', rows: 2 },
+                { key: 'suggestedTech', label: 'Suggested Technology', rows: 2 },
+                { key: 'deployment', label: 'Deployment Instructions', rows: 2 },
+                { key: 'uiRecommendations', label: 'UI Recommendations', rows: 2 },
+                { key: 'deepseekPrompt', label: 'DeepSeek Prompt', rows: 3 },
+                { key: 'kimiPrompt', label: 'Kimi Prompt', rows: 3 },
+                { key: 'buildSpec', label: 'Export Build Specification', rows: 4 },
+            ];
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Prototype Builder</h2>
+                    <p className="text-[#64748b] mb-6">Generate a build-ready specification for your prototype.</p>
+                    <div className="grid-2">
+                        {fields.map(f => (
+                            <div key={f.key} className="form-group" style={{ gridColumn: f.key === 'buildSpec' ?
+                                    '1 / -1' : 'auto' }}>
+                                <label>{f.label}</label>
+                                <textarea rows={f.rows || 2} value={p[f.key] || ''} onChange={(e) => updateField(
+                                    'prototype.' + f.key, e.target.value)} />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-4 p-4 bg-[#4f46e5]/10 rounded-xl border border-[#4f46e5]/20">
+                        <p className="text-sm font-medium text-[#4f46e5]">🚀 This module generates a complete build specification. Share it with your development team to start building.</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Brand Studio ──────────────────────────────────
+        function BrandStudio({ data, updateField }) {
+            const b = data.brand || {};
+            const fields = [
+                { key: 'companyName', label: 'Company Name' },
+                { key: 'productName', label: 'Product Name' },
+                { key: 'tagline', label: 'Tagline' },
+                { key: 'mission', label: 'Mission', rows: 2 },
+                { key: 'vision', label: 'Vision', rows: 2 },
+                { key: 'brandVoice', label: 'Brand Voice' },
+                { key: 'brandPersonality', label: 'Brand Personality' },
+                { key: 'valueProposition', label: 'Value Proposition', rows: 2 },
+                { key: 'elevatorPitch', label: 'Elevator Pitch', rows: 3 },
+                { key: 'logoDirection', label: 'Logo Direction', rows: 2 },
+                { key: 'colorPalette', label: 'Color Palette' },
+                { key: 'typography', label: 'Typography' },
+            ];
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Brand Studio</h2>
+                    <p className="text-[#64748b] mb-6">Define your brand identity and positioning.</p>
+                    <div className="grid-2">
+                        {fields.map(f => (
+                            <div key={f.key} className="form-group">
+                                <label>{f.label}</label>
+                                <textarea rows={f.rows || 1} value={b[f.key] || ''} onChange={(e) => updateField(
+                                    'brand.' + f.key, e.target.value)} />
+                            </div>
+                        ))}
+                        <div className="form-group">
+                            <label>Website Headlines</label>
+                            <div className="flex flex-wrap gap-2 mb-1">
+                                {(b.websiteHeadlines || []).map((h, i) => <span key={i} className="tag tag-blue">{h}</span>)}
+                            </div>
+                            <input className="text-sm" placeholder="Add headline" onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.target.value.trim()) {
+                                    const list = [...(b.websiteHeadlines || [])];
+                                    list.push(e.target.value.trim());
+                                    updateField('brand.websiteHeadlines', list);
+                                    e.target.value = '';
+                                }
+                            }} />
+                        </div>
+                        <div className="form-group">
+                            <label>Domain Suggestions</label>
+                            <div className="flex flex-wrap gap-2 mb-1">
+                                {(b.domainSuggestions || []).map((d, i) => <span key={i} className="tag tag-green">{d}</span>)}
+                            </div>
+                            <input className="text-sm" placeholder="Add domain" onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.target.value.trim()) {
+                                    const list = [...(b.domainSuggestions || [])];
+                                    list.push(e.target.value.trim());
+                                    updateField('brand.domainSuggestions', list);
+                                    e.target.value = '';
+                                }
+                            }} />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Pricing Simulator ─────────────────────────────
+        function PricingSimulator({ data, updateField }) {
+            const p = data.pricing || {};
+            const [monthlyPrice, setMonthlyPrice] = useState(p.monthlyPrice || 99);
+            const [customers, setCustomers] = useState(p.customers || 50);
+            const [growth, setGrowth] = useState(p.growth || 10);
+            const [churn, setChurn] = useState(p.churn || 3);
+            const [cac, setCac] = useState(p.cac || 200);
+            const [ltv, setLtv] = useState(p.ltv || 1200);
+
+            useEffect(() => {
+                const mrr = monthlyPrice * customers;
+                const arr = mrr * 12;
+                const breakEven = Math.round(cac / (monthlyPrice * 0.7));
+                const runway = Math.round(12 / (churn / 100 + 0.05));
+                updateField('pricing', {
+                    monthlyPrice,
+                    customers,
+                    growth,
+                    churn,
+                    cac,
+                    ltv,
+                    monthlyRevenue: mrr,
+                    mrr,
+                    arr,
+                    breakEven,
+                    cashRunway: runway
+                });
+            }, [monthlyPrice, customers, growth, churn, cac, ltv]);
+
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            useEffect(() => {
+                if (chartRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    if (chartInstance.current) chartInstance.current.destroy();
+                    const months = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+                    const projected = months.map((_, i) => {
+                        return Math.round(customers * Math.pow(1 + growth / 100, i) * monthlyPrice);
+                    });
+                    chartInstance.current = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: months,
+                            datasets: [{
+                                label: 'Projected Monthly Revenue',
+                                data: projected,
+                                borderColor: '#4f46e5',
+                                backgroundColor: 'rgba(79,70,229,0.08)',
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                            x: { grid: { display: false } } }
+                        }
+                    });
+                }
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+            }, [customers, growth, monthlyPrice]);
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Pricing Simulator</h2>
+                    <p className="text-[#64748b] mb-6">Adjust sliders to model your startup's financial future.</p>
+
+                    <div className="grid-2">
+                        <div>
+                            <div className="form-group">
+                                <label>Monthly Price ($)</label>
+                                <input type="range" className="slider" min="10" max="500" value={monthlyPrice} onChange={
+                                    (e) => setMonthlyPrice(Number(e.target.value))} />
+                                <div className="text-lg font-bold text-[#4f46e5]">${monthlyPrice}</div>
+                            </div>
+                            <div className="form-group">
+                                <label>Customers</label>
+                                <input type="range" className="slider" min="0" max="500" value={customers} onChange={
+                                    (e) => setCustomers(Number(e.target.value))} />
+                                <div className="text-lg font-bold text-[#4f46e5]">{customers}</div>
+                            </div>
+                            <div className="form-group">
+                                <label>Monthly Growth (%)</label>
+                                <input type="range" className="slider" min="0" max="50" value={growth} onChange={(e) =>
+                                    setGrowth(Number(e.target.value))} />
+                                <div className="text-lg font-bold text-[#4f46e5]">{growth}%</div>
+                            </div>
+                            <div className="form-group">
+                                <label>Churn Rate (%)</label>
+                                <input type="range" className="slider" min="0" max="20" value={churn} onChange={(e) =>
+                                    setChurn(Number(e.target.value))} />
+                                <div className="text-lg font-bold text-[#4f46e5]">{churn}%</div>
+                            </div>
+                            <div className="form-group">
+                                <label>CAC ($)</label>
+                                <input type="range" className="slider" min="0" max="1000" value={cac} onChange={(e) =>
+                                    setCac(Number(e.target.value))} />
+                                <div className="text-lg font-bold text-[#4f46e5]">${cac}</div>
+                            </div>
+                            <div className="form-group">
+                                <label>LTV ($)</label>
+                                <input type="range" className="slider" min="0" max="5000" value={ltv} onChange={(e) =>
+                                    setLtv(Number(e.target.value))} />
+                                <div className="text-lg font-bold text-[#4f46e5]">${ltv}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="stat-card mb-3">
+                                <div className="text-[#64748b] text-sm">MRR</div>
+                                <div className="text-2xl font-bold">${(monthlyPrice * customers).toLocaleString()}</div>
+                            </div>
+                            <div className="stat-card mb-3">
+                                <div className="text-[#64748b] text-sm">ARR</div>
+                                <div className="text-2xl font-bold">${(monthlyPrice * customers * 12).toLocaleString()}</div>
+                            </div>
+                            <div className="stat-card mb-3">
+                                <div className="text-[#64748b] text-sm">Break-even (months)</div>
+                                <div className="text-2xl font-bold">{Math.round(cac / (monthlyPrice * 0.7))}</div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="text-[#64748b] text-sm">Cash Runway (months)</div>
+                                <div className="text-2xl font-bold">{Math.round(12 / (churn / 100 + 0.05))}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 chart-container" style={{ height: '180px' }}>
+                        <canvas ref={chartRef}></canvas>
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Launch Planner ───────────────────────────────
+        function LaunchPlanner({ data, updateField }) {
+            const l = data.launch || {};
+            const sections = [
+                { key: 'landingPageChecklist', label: 'Landing Page Checklist' },
+                { key: 'productHuntPlan', label: 'Product Hunt Plan', rows: 2 },
+                { key: 'marketingTimeline', label: 'Marketing Timeline', rows: 2 },
+                { key: 'socialMediaStrategy', label: 'Social Media Strategy', rows: 2 },
+                { key: 'emailCampaign', label: 'Email Campaign', rows: 2 },
+                { key: 'betaProgram', label: 'Beta Program', rows: 2 },
+                { key: 'launchChecklist', label: 'Launch Checklist' },
+                { key: 'first100Customers', label: 'First 100 Customers Plan', rows: 2 },
+                { key: 'ninetyDayRoadmap', label: '90-Day Launch Roadmap', rows: 3 },
+            ];
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Launch Planner</h2>
+                    <p className="text-[#64748b] mb-6">Plan your go-to-market strategy and launch execution.</p>
+                    <div className="grid-2">
+                        {sections.map(s => (
+                            <div key={s.key} className="form-group" style={{ gridColumn: s.key ===
+                                    'ninetyDayRoadmap' ? '1 / -1' : 'auto' }}>
+                                <label>{s.label}</label>
+                                <textarea rows={s.rows || 2} value={l[s.key] || ''} onChange={(e) => updateField(
+                                    'launch.' + s.key, e.target.value)} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Investor Center ──────────────────────────────
+        function InvestorCenter({ data, updateField }) {
+            const i = data.investor || {};
+            const fields = [
+                { key: 'executiveSummary', label: 'Executive Summary', rows: 3 },
+                { key: 'problem', label: 'Problem', rows: 2 },
+                { key: 'solution', label: 'Solution', rows: 2 },
+                { key: 'market', label: 'Market', rows: 2 },
+                { key: 'product', label: 'Product', rows: 2 },
+                { key: 'businessModel', label: 'Business Model', rows: 2 },
+                { key: 'competitiveAdvantage', label: 'Competitive Advantage', rows: 2 },
+                { key: 'goToMarket', label: 'Go-To-Market', rows: 2 },
+                { key: 'financialProjection', label: 'Financial Projection', rows: 2 },
+                { key: 'fundingAsk', label: 'Funding Ask', rows: 2 },
+                { key: 'milestones', label: 'Milestones', rows: 2 },
+                { key: 'riskAnalysis', label: 'Risk Analysis', rows: 2 },
+                { key: 'pitchSummary', label: 'Pitch Summary', rows: 3 },
+            ];
+
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Investor Center</h2>
+                    <p className="text-[#64748b] mb-6">Prepare investor-ready documentation for your startup.</p>
+                    <div className="grid-2">
+                        {fields.map(f => (
+                            <div key={f.key} className="form-group" style={{ gridColumn: f.key ===
+                                    'executiveSummary' || f.key === 'pitchSummary' ? '1 / -1' : 'auto' }}>
+                                <label>{f.label}</label>
+                                <textarea rows={f.rows || 2} value={i[f.key] || ''} onChange={(e) => updateField(
+                                    'investor.' + f.key, e.target.value)} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Blueprint ─────────────────────────────────────
+        function BlueprintView({ data, setShowBlueprint }) {
+            return (
+                <div className="module-card">
+                    <h2 className="text-xl font-bold text-[#0f172a] mb-2">Startup Blueprint</h2>
+                    <p className="text-[#64748b] mb-6">Generate a complete printable report of your startup.</p>
+                    <div className="p-6 bg-[#f8fafc] rounded-xl border border-[#e9edf2]">
+                        <BlueprintContent data={data} preview />
+                    </div>
+                    <div className="mt-4 flex gap-3">
+                        <button className="btn-primary" onClick={() => setShowBlueprint(true)}>
+                            <span dangerouslySetInnerHTML={{ __html: Icons.FileText() }} /> View Full Blueprint
+                        </button>
+                        <button className="btn-secondary" onClick={() => {
+                            setShowBlueprint(true);
+                            setTimeout(() => window.print(), 300);
+                        }}>
+                            <span dangerouslySetInnerHTML={{ __html: Icons.Download() }} /> Print
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        function BlueprintContent({ data, preview }) {
+            const b = data;
+            const r = calcReadiness(data);
+
+            return (
+                <div className={preview ? 'text-sm' : ''}>
+                    <div className="blueprint-section">
+                        <h3 className="font-bold text-lg">📋 Executive Summary</h3>
+                        <p className="text-[#475569]">{b.investor?.executiveSummary || 'Not defined'}</p>
+                        <div className="grid-2 mt-2 text-sm">
+                            <div><span className="font-medium">Startup:</span> {b.name || 'Not set'}</div>
+                            <div><span className="font-medium">Industry:</span> {b.industry || 'Not set'}</div>
+                            <div><span className="font-medium">Overall Score:</span> {r.overall}%</div>
+                            <div><span className="font-medium">Launch Readiness:</span> {r.launch}%</div>
+                        </div>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">💡 Startup Idea</h4>
+                        <p className="text-[#475569]">{b.idea || 'Not defined'}</p>
+                        <p className="text-[#475569] text-sm mt-1"><strong>Problem:</strong> {b.problem || 'Not defined'}</p>
+                        <p className="text-[#475569] text-sm"><strong>Solution:</strong> {b.solution || 'Not defined'}</p>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">🎯 Validation</h4>
+                        <div className="grid-2 text-sm">
+                            <div><span className="font-medium">Problem Severity:</span> {b.validation?.problemSeverity ||
+                                0}%</div>
+                            <div><span className="font-medium">Market Size:</span> {b.validation?.marketSize || 0}%</div>
+                            <div><span className="font-medium">Differentiation:</span> {b.validation?.differentiation ||
+                                0}%</div>
+                            <div><span className="font-medium">Founder Fit:</span> {b.validation?.founderFit || 0}%</div>
+                        </div>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">📊 Business Model</h4>
+                        <p className="text-[#475569] text-sm"><strong>Value Prop:</strong> {b.businessModel
+                                ?.valueProposition || 'Not defined'}</p>
+                        <p className="text-[#475569] text-sm"><strong>Revenue:</strong> {b.businessModel?.revenueModel ||
+                                'Not defined'}</p>
+                        <p className="text-[#475569] text-sm"><strong>Pricing:</strong> {b.businessModel
+                                ?.pricingStrategy || 'Not defined'}</p>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">🛠️ Product & Prototype</h4>
+                        <p className="text-[#475569] text-sm"><strong>Purpose:</strong> {b.product?.purpose || 'Not defined'}
+                        </p>
+                        <p className="text-[#475569] text-sm"><strong>MVP:</strong> {b.product?.mvpDefinition ||
+                                'Not defined'}</p>
+                        <p className="text-[#475569] text-sm"><strong>Tech Stack:</strong> {b.prototype?.suggestedTech ||
+                                'Not defined'}</p>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">🎨 Brand</h4>
+                        <p className="text-[#475569] text-sm"><strong>Tagline:</strong> {b.brand?.tagline || 'Not defined'}</p>
+                        <p className="text-[#475569] text-sm"><strong>Voice:</strong> {b.brand?.brandVoice || 'Not defined'}
+                        </p>
+                        <p className="text-[#475569] text-sm"><strong>Colors:</strong> {b.brand?.colorPalette ||
+                                'Not defined'}</p>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">💰 Financials</h4>
+                        <div className="grid-2 text-sm">
+                            <div><span className="font-medium">MRR:</span> ${(b.pricing?.mrr || 0).toLocaleString()}</div>
+                            <div><span className="font-medium">ARR:</span> ${(b.pricing?.arr || 0).toLocaleString()}</div>
+                            <div><span className="font-medium">Break-even:</span> {b.pricing?.breakEven || 0} months</div>
+                            <div><span className="font-medium">Runway:</span> {b.pricing?.cashRunway || 0} months</div>
+                        </div>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">🚀 Launch Roadmap</h4>
+                        <p className="text-[#475569] text-sm">{b.launch?.ninetyDayRoadmap || 'Not defined'}</p>
+                    </div>
+
+                    <div className="blueprint-section">
+                        <h4 className="font-bold">📈 Investor Summary</h4>
+                        <p className="text-[#475569] text-sm">{b.investor?.pitchSummary || 'Not defined'}</p>
+                        <p className="text-[#475569] text-sm mt-1"><strong>Funding Ask:</strong> {b.investor
+                                ?.fundingAsk || 'Not defined'}</p>
+                    </div>
+
+                    <div className="mt-4 p-3 bg-[#f1f5f9] rounded-xl text-xs text-[#64748b]">
+                        Generated by AI Startup Factory™ — {new Date().toLocaleDateString()}
+                    </div>
+                </div>
+            );
+        }
+
+        // ─── Mount ──────────────────────────────────────────
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+</body>
+</html>
