@@ -1,1823 +1,518 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Startup Factory™ – Production Line</title>
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <!-- React & Babel -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js">
-    </script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js">
-    </script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js">
-    </script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
-    </script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest">
-    </script>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
-        }
-        .station-card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
-            padding: 24px;
-            transition: box-shadow 0.2s;
-            border-left: 4px solid #e2e8f0;
-        }
-        .station-card.active {
-            border-left-color: #4f46e5;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.15);
-        }
-        .station-card.completed {
-            border-left-color: #22c55e;
-        }
-        .station-card.blocked {
-            border-left-color: #ef4444;
-            opacity: 0.7;
-        }
-        .btn-primary {
-            background: #4f46e5;
-            color: #fff;
-            padding: 10px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-primary:hover {
-            background: #4338ca;
-        }
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #1e293b;
-            padding: 10px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-secondary:hover {
-            background: #e2e8f0;
-        }
-        .btn-outline {
-            background: transparent;
-            color: #4f46e5;
-            padding: 8px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border: 1.5px solid #4f46e5;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-outline:hover {
-            background: #eef2ff;
-        }
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1.5px solid #e2e8f0;
-            font-size: 0.9rem;
-            transition: border 0.2s;
-            background: #fff;
-            color: #1e293b;
-        }
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-        }
-        label {
-            font-weight: 500;
-            font-size: 0.85rem;
-            color: #475569;
-            display: block;
-            margin-bottom: 4px;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 4px;
-            background: #e2e8f0;
-            outline: none;
-        }
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #4f46e5;
-            cursor: pointer;
-        }
-        .floating-advisor {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 999;
-            background: #4f46e5;
-            color: #fff;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.35);
-            cursor: pointer;
-            transition: transform 0.2s;
-            border: none;
-        }
-        .floating-advisor:hover {
-            transform: scale(1.05);
-        }
-        .advisor-chat {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            width: 380px;
-            max-height: 500px;
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #e9edf2;
-        }
-        .advisor-chat.open {
-            display: flex;
-        }
-        .advisor-chat-header {
-            padding: 16px 20px;
-            background: #4f46e5;
-            color: #fff;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .advisor-chat-body {
-            padding: 16px 20px;
-            overflow-y: auto;
-            flex: 1;
-            max-height: 300px;
-        }
-        .advisor-chat-footer {
-            padding: 12px 20px;
-            border-top: 1px solid #e9edf2;
-            display: flex;
-            gap: 10px;
-        }
-        .advisor-chat-footer input {
-            flex: 1;
-            padding: 8px 14px;
-            border-radius: 8px;
-            border: 1.5px solid #e2e8f0;
-        }
-        .advisor-chat-footer button {
-            background: #4f46e5;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .msg-bot {
-            background: #f1f5f9;
-            padding: 10px 14px;
-            border-radius: 12px 12px 12px 4px;
-            margin-bottom: 8px;
-            max-width: 85%;
-            font-size: 0.9rem;
-            color: #1e293b;
-        }
-        .msg-user {
-            background: #4f46e5;
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 12px 12px 4px 12px;
-            margin-bottom: 8px;
-            margin-left: auto;
-            max-width: 85%;
-            font-size: 0.9rem;
-        }
-        .tag {
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .tag-green {
-            background: #dcfce7;
-            color: #166534;
-        }
-        .tag-yellow {
-            background: #fef9c3;
-            color: #854d0e;
-        }
-        .tag-red {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .tag-blue {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        .production-line {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: center;
-            margin: 24px 0;
-        }
-        .station-dot {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 80px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .station-dot:hover {
-            transform: scale(1.05);
-        }
-        .station-dot .circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.8rem;
-            border: 2px solid #e2e8f0;
-            background: #f8fafc;
-            color: #94a3b8;
-            transition: all 0.3s;
-        }
-        .station-dot.active .circle {
-            border-color: #4f46e5;
-            background: #eef2ff;
-            color: #4f46e5;
-        }
-        .station-dot.completed .circle {
-            border-color: #22c55e;
-            background: #dcfce7;
-            color: #166534;
-        }
-        .station-dot.blocked .circle {
-            border-color: #ef4444;
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .station-dot .label {
-            font-size: 0.65rem;
-            font-weight: 500;
-            color: #64748b;
-            margin-top: 4px;
-            text-align: center;
-        }
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.35);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-box {
-            background: #fff;
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 900px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
-        }
-        .modal-box .close {
-            float: right;
-            background: none;
-            border: none;
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: #94a3b8;
-        }
-        .modal-box .close:hover {
-            color: #1e293b;
-        }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 768px) {
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-            .production-line {
-                gap: 8px;
-            }
-            .station-dot {
-                width: 60px;
-            }
-            .station-dot .circle {
-                width: 36px;
-                height: 36px;
-                font-size: 0.6rem;
-            }
-            .station-dot .label {
-                font-size: 0.5rem;
-            }
-            .floating-advisor {
-                width: 50px;
-                height: 50px;
-                bottom: 20px;
-                right: 20px;
-            }
-            .advisor-chat {
-                width: calc(100% - 40px);
-                right: 20px;
-                bottom: 80px;
-            }
-        }
-        .scrollable {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .chart-container {
-            position: relative;
-            height: 200px;
-        }
-        .factory-header {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #fff;
-            padding: 20px 32px;
-            border-radius: 16px;
-            margin-bottom: 24px;
-        }
-        .factory-header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        .factory-header .sub {
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-        .landing-hero {
-            min-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-        }
-        .landing-hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: #0f172a;
-            max-width: 800px;
-        }
-        .landing-hero .sub {
-            font-size: 1.2rem;
-            color: #475569;
-            max-width: 600px;
-            margin: 16px 0 32px;
-        }
-        .landing-hero .factory-gif {
-            font-size: 4rem;
-            margin: 20px 0;
-        }
-        @media (max-width: 768px) {
-            .landing-hero h1 {
-                font-size: 2.2rem;
-            }
-        }
-        .readiness-meter {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .meter-bar {
-            flex: 1;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .meter-fill {
-            height: 100%;
-            background: #4f46e5;
-            border-radius: 4px;
-            transition: width 0.5s;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Startup Factory™</title>
+  <meta name="description" content="Turn a raw startup idea into a validated, build-ready startup blueprint." />
+  <style>
+    :root{
+      --ink:#122033;--muted:#66758a;--line:#dfe7ef;--panel:#ffffff;--bg:#f5f8fb;
+      --brand:#3157d5;--brand2:#6a5cf6;--good:#14845f;--warn:#ad6b00;--bad:#c53f43;
+      --soft:#eef3ff;--shadow:0 18px 50px rgba(22,40,72,.10);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    .hidden{display:none!important}
+    .shell{min-height:100vh}
+    .landing{min-height:100vh;display:grid;place-items:center;padding:32px;background:
+      radial-gradient(circle at 15% 15%,rgba(106,92,246,.16),transparent 28%),
+      radial-gradient(circle at 85% 10%,rgba(49,87,213,.14),transparent 30%),
+      linear-gradient(180deg,#fbfdff,#eef4fb)}
+    .hero{width:min(1180px,100%);display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #cbd8ff;border-radius:999px;background:#fff;color:var(--brand);font-weight:700;font-size:.82rem}
+    h1{font-size:clamp(2.6rem,6vw,5.7rem);line-height:.96;margin:20px 0 18px;letter-spacing:-.055em}
+    .lead{font-size:1.15rem;line-height:1.7;color:var(--muted);max-width:720px}
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+    .btn{border:0;border-radius:12px;padding:12px 18px;font-weight:800;transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+    .btn:hover{transform:translateY(-1px)}
+    .primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;box-shadow:0 10px 28px rgba(49,87,213,.28)}
+    .secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+    .danger{background:#fff1f1;color:var(--bad);border:1px solid #ffd1d1}
+    .factory-preview{background:#0f1c2f;border-radius:26px;padding:24px;color:#fff;box-shadow:var(--shadow);overflow:hidden}
+    .belt{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:24px}
+    .mini-stage{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);border-radius:16px;padding:14px;text-align:center;min-height:96px}
+    .mini-stage b{display:block;margin-top:10px;font-size:.78rem}
+    .mini-stage span{font-size:1.6rem}
+    .app{padding:18px}
+    .topbar{max-width:1500px;margin:0 auto 16px;background:#0f1c2f;color:#fff;border-radius:20px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+    .brandline{display:flex;align-items:center;gap:12px}
+    .brandmark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--brand2));font-size:1.4rem}
+    .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .score-pill{background:rgba(255,255,255,.09);padding:8px 12px;border-radius:999px;font-size:.86rem}
+    .workspace{max-width:1500px;margin:auto;display:grid;grid-template-columns:310px minmax(0,1fr) 330px;gap:16px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 6px 24px rgba(22,40,72,.05)}
+    .rail{padding:16px;align-self:start;position:sticky;top:18px}
+    .station{display:grid;grid-template-columns:38px 1fr;gap:10px;padding:11px;border-radius:13px;margin-bottom:7px;transition:.2s;border:1px solid transparent}
+    .station:hover{background:#f6f8fb}
+    .station.active{background:var(--soft);border-color:#cfd9ff}
+    .station.locked{opacity:.48;cursor:not-allowed}
+    .station.done .num{background:var(--good);color:white}
+    .num{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#edf1f6;font-size:.82rem;font-weight:900}
+    .station b{display:block;font-size:.89rem}
+    .station small{color:var(--muted)}
+    .main{padding:22px;min-height:760px}
+    .right{padding:16px;align-self:start;position:sticky;top:18px}
+    .station-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:20px}
+    .station-head h2{margin:0;font-size:1.7rem}
+    .station-head p{margin:7px 0 0;color:var(--muted)}
+    .badge{padding:7px 10px;border-radius:999px;font-size:.76rem;font-weight:900}
+    .badge.good{background:#e9f8f2;color:var(--good)}
+    .badge.warn{background:#fff5dc;color:var(--warn)}
+    .badge.bad{background:#fff0f0;color:var(--bad)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .field{margin-bottom:15px}
+    label{display:block;font-weight:800;font-size:.83rem;margin-bottom:6px}
+    input,textarea,select{width:100%;border:1px solid #ccd6e0;background:#fff;border-radius:11px;padding:11px 12px;color:var(--ink)}
+    input:focus,textarea:focus,select:focus{outline:3px solid rgba(49,87,213,.12);border-color:var(--brand)}
+    textarea{resize:vertical;min-height:96px}
+    .helper{font-size:.78rem;color:var(--muted);margin-top:5px}
+    .analysis-card{border:1px solid var(--line);border-radius:15px;padding:15px;background:#fbfcfe}
+    .analysis-card h3{margin:0 0 10px;font-size:1rem}
+    .metric{display:flex;justify-content:space-between;gap:12px;margin:9px 0;font-size:.86rem}
+    .bar{height:8px;background:#e9eef4;border-radius:999px;overflow:hidden}
+    .fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2));border-radius:999px}
+    .callout{border-left:4px solid var(--brand);background:#f5f7ff;padding:14px;border-radius:10px;margin:14px 0}
+    .callout.warn{border-color:var(--warn);background:#fff9ec}
+    .callout.bad{border-color:var(--bad);background:#fff4f4}
+    .artifact{border:1px solid #dbe5ee;border-radius:15px;background:#fbfdff;padding:16px;margin-top:14px}
+    .artifact h3{margin:0 0 10px}
+    .artifact pre{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.8rem;line-height:1.55;background:#101c2d;color:#e8eef7;border-radius:12px;padding:14px;max-height:390px;overflow:auto}
+    .footer-actions{display:flex;justify-content:space-between;gap:12px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+    .checks{display:grid;gap:9px}
+    .check{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:11px;background:#f7f9fb}
+    .check input{width:auto;margin-top:2px}
+    .quality h3{margin:0 0 12px}
+    .quality-item{padding:10px;border-radius:11px;margin-bottom:8px;font-size:.84rem}
+    .quality-item.good{background:#edf9f4;color:#17694f}
+    .quality-item.warn{background:#fff7e6;color:#885608}
+    .quality-item.bad{background:#fff0f0;color:#9e3034}
+    .score-big{font-size:3rem;font-weight:950;letter-spacing:-.05em}
+    .small{font-size:.8rem;color:var(--muted)}
+    .persona{border:1px solid var(--line);padding:14px;border-radius:14px;margin-bottom:12px}
+    .tagrow{display:flex;gap:8px;flex-wrap:wrap}
+    .tag{padding:6px 9px;border-radius:999px;background:#edf2f7;font-size:.76rem;font-weight:800}
+    .blueprint{position:fixed;inset:0;background:rgba(7,15,27,.72);display:grid;place-items:center;padding:20px;z-index:10}
+    .blueprint-card{width:min(1000px,100%);max-height:92vh;overflow:auto;background:white;border-radius:20px;padding:24px}
+    .blueprint section{margin-bottom:22px}
+    .blueprint h2,.blueprint h3{margin-bottom:8px}
+    .blueprint ul{line-height:1.7}
+    .modal-actions{position:sticky;bottom:0;background:white;padding-top:15px;display:flex;gap:10px;justify-content:flex-end}
+    @media(max-width:1150px){.workspace{grid-template-columns:260px 1fr}.right{grid-column:1/-1;position:static}.hero{grid-template-columns:1fr}.factory-preview{display:none}}
+    @media(max-width:760px){.workspace{grid-template-columns:1fr}.rail,.right{position:static}.grid2,.grid3{grid-template-columns:1fr}.topbar{align-items:flex-start;flex-direction:column}.belt{grid-template-columns:repeat(2,1fr)}}
+    @media print{body{background:white}.blueprint{position:static;background:white;padding:0}.blueprint-card{max-height:none;width:100%;box-shadow:none}.modal-actions{display:none}}
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useCallback, useMemo } = React;
-
-        // ─── Icons ──────────────────────────────────────────────
-        const Icons = {
-            Factory: () => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M4 20V10h4V4h12v16"/><path d="M12 10v10"/><path d="M16 10v10"/><path d="M8 10v10"/></svg>',
-            Check: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-            Alert: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-            MessageCircle: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
-            X: () => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
-            Download: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-            Refresh: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>',
-            ArrowRight: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
-            ArrowLeft: () => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
-        };
-
-        function Icon({ name, className = '' }) {
-            const svg = Icons[name] ? Icons[name]() : '';
-            return <span className={className} dangerouslySetInnerHTML={{ __html: svg }} />;
-        }
-
-        // ─── Default Factory Data ──────────────────────────────
-        function getDefaultFactory() {
-            return {
-                // Startup core
-                idea: '',
-                problem: '',
-                customer: '',
-                budget: 50000,
-                founderExperience: 'Intermediate',
-                desiredOutcome: '',
-
-                // Station 2: Problem Validation
-                problemSeverity: 50,
-                evidence: '',
-                customerPain: 50,
-
-                // Station 3: Customer Definition
-                personas: [{ name: '', role: '', pain: '', goal: '' }],
-                segments: [],
-
-                // Station 4: Business Model
-                valueProp: '',
-                revenueModel: '',
-                pricingStrategy: '',
-                channels: '',
-                costStructure: '',
-
-                // Station 5: MVP Engineering
-                coreFeatures: [],
-                mvpScope: '',
-                complexity: 50,
-
-                // Station 6: Prototype Specification (auto-generated)
-                prototypeSpec: '',
-
-                // Station 7: Brand
-                companyName: '',
-                tagline: '',
-                brandVoice: '',
-                colorPalette: '',
-
-                // Station 8: Revenue Modeling
-                monthlyPrice: 99,
-                projectedCustomers: 50,
-                growthRate: 10,
-                churn: 3,
-                cac: 200,
-
-                // Station 9: Launch Plan
-                launchChecklist: '',
-                marketingPlan: '',
-                betaPlan: '',
-
-                // Station 10: Final Audit
-                auditPassed: false,
-                auditIssues: [],
-
-                // Completion status for each station (1-10)
-                stationStatus: {
-                    1: false,
-                    2: false,
-                    3: false,
-                    4: false,
-                    5: false,
-                    6: false,
-                    7: false,
-                    8: false,
-                    9: false,
-                    10: false
-                },
-
-                // Advisor messages
-                advisorMessages: [{ from: 'bot', text: '👷 Welcome to the Factory! I\'m your Quality Inspector. I\'ll challenge your assumptions and help you build a robust startup.' }],
-
-                // Current station index (0-based)
-                currentStation: 0, // 0 = landing, 1-10 = stations
-
-                // Flag to indicate if we've started
-                started: false,
-
-                // Demo flag
-                isDemo: false,
-            };
-        }
-
-        // ─── Storage ──────────────────────────────────────────
-        function loadData() {
-            try {
-                const raw = localStorage.getItem('aistartup_factory_data');
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    const def = getDefaultFactory();
-                    // Merge, preserving any new fields
-                    return { ...def, ...parsed };
-                }
-            } catch (e) { /* ignore */ }
-            return getDefaultFactory();
-        }
-
-        function saveData(data) {
-            try {
-                localStorage.setItem('aistartup_factory_data', JSON.stringify(data));
-            } catch (e) { /* ignore */ }
-        }
-
-        // ─── Helper: compute readiness dynamically ────────────
-        function computeReadiness(data) {
-            // This is a simplified but dynamic calculation based on inputs
-            const scores = {
-                validation: 0,
-                businessModel: 0,
-                product: 0,
-                brand: 0,
-                pricing: 0,
-                launch: 0,
-                overall: 0
-            };
-
-            // Validation: based on problem severity, customer pain, evidence, etc.
-            let val = 0;
-            if (data.problemSeverity) val += data.problemSeverity * 0.3;
-            if (data.customerPain) val += data.customerPain * 0.3;
-            if (data.evidence && data.evidence.length > 10) val += 20;
-            if (data.customer && data.customer.length > 5) val += 10;
-            scores.validation = Math.min(100, val + 10);
-
-            // Business Model: based on value prop, revenue model, channels
-            let bm = 0;
-            if (data.valueProp && data.valueProp.length > 10) bm += 30;
-            if (data.revenueModel && data.revenueModel.length > 3) bm += 20;
-            if (data.pricingStrategy && data.pricingStrategy.length > 3) bm += 20;
-            if (data.channels && data.channels.length > 3) bm += 15;
-            if (data.costStructure && data.costStructure.length > 3) bm += 15;
-            scores.businessModel = Math.min(100, bm);
-
-            // Product: based on core features, MVP scope, complexity
-            let prod = 0;
-            if (data.coreFeatures && data.coreFeatures.length > 0) prod += 30;
-            if (data.mvpScope && data.mvpScope.length > 10) prod += 30;
-            if (data.complexity >= 30 && data.complexity <= 80) prod += 20; // avoid too low/high
-            if (data.prototypeSpec && data.prototypeSpec.length > 20) prod += 20;
-            scores.product = Math.min(100, prod);
-
-            // Brand: company name, tagline, voice
-            let brand = 0;
-            if (data.companyName && data.companyName.length > 2) brand += 30;
-            if (data.tagline && data.tagline.length > 5) brand += 30;
-            if (data.brandVoice && data.brandVoice.length > 5) brand += 20;
-            if (data.colorPalette && data.colorPalette.length > 3) brand += 20;
-            scores.brand = Math.min(100, brand);
-
-            // Pricing: based on monthlyPrice, projectedCustomers, growth, churn
-            let price = 0;
-            if (data.monthlyPrice > 0) price += 20;
-            if (data.projectedCustomers > 0) price += 20;
-            if (data.growthRate > 0) price += 20;
-            if (data.churn >= 0 && data.churn < 10) price += 20;
-            if (data.cac > 0) price += 20;
-            scores.pricing = Math.min(100, price);
-
-            // Launch: based on launchChecklist, marketingPlan, betaPlan
-            let launch = 0;
-            if (data.launchChecklist && data.launchChecklist.length > 10) launch += 30;
-            if (data.marketingPlan && data.marketingPlan.length > 10) launch += 30;
-            if (data.betaPlan && data.betaPlan.length > 10) launch += 40;
-            scores.launch = Math.min(100, launch);
-
-            // Overall: weighted average of all scores (with validation highest)
-            const weights = { validation: 0.25, businessModel: 0.15, product: 0.15, brand: 0.10, pricing: 0.15,
-                launch: 0.20 };
-            let total = 0;
-            let sum = 0;
-            for (const k of Object.keys(weights)) {
-                total += weights[k];
-                sum += (scores[k] || 0) * weights[k];
-            }
-            scores.overall = Math.round(sum / total);
-            return scores;
-        }
-
-        // ─── App ──────────────────────────────────────────────
-        function App() {
-            const [data, setData] = useState(() => loadData());
-            const [advisorOpen, setAdvisorOpen] = useState(false);
-            const [advisorInput, setAdvisorInput] = useState('');
-            const [showBlueprint, setShowBlueprint] = useState(false);
-            const chatEndRef = useRef(null);
-
-            const save = useCallback((newData) => {
-                const merged = { ...data, ...newData };
-                setData(merged);
-                saveData(merged);
-            }, [data]);
-
-            const updateField = useCallback((path, value) => {
-                const keys = path.split('.');
-                let cur = { ...data };
-                let ref = cur;
-                for (let i = 0; i < keys.length - 1; i++) {
-                    if (!ref[keys[i]]) ref[keys[i]] = {};
-                    ref = ref[keys[i]];
-                }
-                ref[keys[keys.length - 1]] = value;
-                save(cur);
-            }, [data, save]);
-
-            // Station definitions
-            const stations = [
-                { id: 1, label: 'Idea Inspection', desc: 'Bring your idea into the factory' },
-                { id: 2, label: 'Problem Validation', desc: 'Is the problem real and painful?' },
-                { id: 3, label: 'Customer Definition', desc: 'Who are you building for?' },
-                { id: 4, label: 'Business Model', desc: 'How will you create and capture value?' },
-                { id: 5, label: 'MVP Engineering', desc: 'What is the simplest thing that works?' },
-                { id: 6, label: 'Prototype Spec', desc: 'Generate a build-ready specification' },
-                { id: 7, label: 'Brand Packaging', desc: 'Name, identity, and voice' },
-                { id: 8, label: 'Revenue Modeling', desc: 'Price, projections, and economics' },
-                { id: 9, label: 'Launch Preparation', desc: 'Plan your go-to-market' },
-                { id: 10, label: 'Final Quality Control', desc: 'Audit and readiness check' },
-            ];
-
-            const currentStationIndex = data.currentStation || 0;
-            const stationStatus = data.stationStatus || {};
-
-            const isStationComplete = (id) => stationStatus[id] || false;
-            const isStationBlocked = (id) => {
-                if (id === 1) return false;
-                // Blocked if previous station is not complete
-                return !isStationComplete(id - 1);
-            };
-            const isStationActive = (id) => {
-                if (id === 1 && !data.started) return false;
-                // Active if it's the first incomplete station or the current one
-                if (id === currentStationIndex + 1) return true;
-                // Also active if it's completed and we're on a later one
-                if (isStationComplete(id) && currentStationIndex + 1 > id) return true;
-                return false;
-            };
-
-            // Compute readiness
-            const readiness = useMemo(() => computeReadiness(data), [data]);
-
-            // Handle station navigation
-            const goToStation = (id) => {
-                if (id === 1 && !data.started) {
-                    // start the factory
-                    save({ started: true, currentStation: 1 });
-                    return;
-                }
-                if (id > 1 && !isStationComplete(id - 1)) {
-                    // cannot skip
-                    return;
-                }
-                save({ currentStation: id });
-            };
-
-            const completeStation = (id) => {
-                const newStatus = { ...stationStatus, [id]: true };
-                save({ stationStatus: newStatus, currentStation: Math.min(id + 1, 10) });
-                // If we completed all, show blueprint automatically?
-                if (id === 10) {
-                    // do nothing special, user can view blueprint
-                }
-            };
-
-            const resetFactory = () => {
-                if (confirm('Reset all factory data? This will clear your progress.')) {
-                    const def = getDefaultFactory();
-                    save(def);
-                    setShowBlueprint(false);
-                }
-            };
-
-            const loadDemo = () => {
-                const demo = getDefaultFactory();
-                demo.started = true;
-                demo.idea = 'SmartClinic AI – AI scheduling for small clinics';
-                demo.problem = 'Small clinics waste 10+ hours/week on manual scheduling, leading to burnout and lost revenue.';
-                demo.customer = 'Small medical clinics with 2–10 staff members';
-                demo.budget = 50000;
-                demo.founderExperience = 'Intermediate';
-                demo.desiredOutcome = 'Reduce scheduling time by 80% and improve patient satisfaction.';
-                demo.problemSeverity = 85;
-                demo.evidence = 'Interviews with 10 clinic owners confirmed the pain; 70% said scheduling is their top admin burden.';
-                demo.customerPain = 90;
-                demo.personas = [
-                    { name: 'Dr. Sarah Chen', role: 'Clinic Owner', pain: 'Spends 5hrs/week on scheduling',
-                        goal: 'Automate to focus on patients' },
-                    { name: 'Mark Rivera', role: 'Clinic Administrator', pain: 'Juggles calls and calendars',
-                        goal: 'Reduce admin workload' }
-                ];
-                demo.segments = ['Small clinics (2–5 staff)', 'Medium clinics (6–15 staff)'];
-                demo.valueProp = 'AI-powered scheduling that saves clinics 10+ hours weekly and reduces no-shows by 30%.';
-                demo.revenueModel = 'Subscription SaaS';
-                demo.pricingStrategy = 'Tiered: $99/mo small, $199/mo medium, $349/mo large';
-                demo.channels = 'Direct sales, webinars, partnerships';
-                demo.costStructure = 'Development, hosting, sales team, support';
-                demo.coreFeatures = ['Smart appointment scheduling', 'Automated reminders (SMS/email)',
-                    'Calendar sync (Google, Outlook)', 'Patient self-scheduling portal'
-                ];
-                demo.mvpScope = 'Core scheduling with calendar sync and reminders for up to 5 staff members.';
-                demo.complexity = 60;
-                demo.prototypeSpec =
-                    '## Build Specification\n\n### Tech Stack\n- Frontend: React, Tailwind CSS\n- Backend: Node.js, PostgreSQL\n- APIs: Google Calendar, Twilio, SendGrid\n\n### Data Models\n- User (id, name, email, role)\n- Clinic (id, name, address)\n- Appointment (id, patient, provider, time, status)\n- Service (id, name, duration, price)\n\n### API Endpoints\n- POST /api/appointments\n- GET /api/appointments/calendar\n- POST /api/reminders\n\n### UI Wireframes\n- Dashboard with calendar view\n- Patient intake form\n- Reports page with utilization charts';
-                demo.companyName = 'SmartClinic AI';
-                demo.tagline = 'Smarter scheduling for better patient care';
-                demo.brandVoice = 'Professional, caring, innovative, trustworthy';
-                demo.colorPalette = '#0A7E8C (teal), #F5A623 (gold), #FFFFFF, #2C3E50 (navy)';
-                demo.monthlyPrice = 99;
-                demo.projectedCustomers = 50;
-                demo.growthRate = 12;
-                demo.churn = 3;
-                demo.cac = 200;
-                demo.launchChecklist = 'Hero section, features grid, pricing table, testimonials, FAQ, contact form';
-                demo.marketingPlan = 'Pre-launch (30 days): content, waitlist. Launch week: Product Hunt, email blast. Post-launch: webinars, case studies.';
-                demo.betaPlan = '10 clinics for 30-day free trial with feedback sessions.';
-                // Mark stations 1-9 as complete (demo shows progress, but 10 is incomplete)
-                const status = {};
-                for (let i = 1; i <= 9; i++) status[i] = true;
-                status[10] = false;
-                demo.stationStatus = status;
-                demo.currentStation = 10; // go to final station
-                demo.isDemo = true;
-                save(demo);
-            };
-
-            // Advisor logic
-            const handleAdvisorAsk = () => {
-                if (!advisorInput.trim()) return;
-                const msg = advisorInput.trim();
-                const msgs = [...(data.advisorMessages || []), { from: 'user', text: msg }];
-                // Generate response based on current data and question
-                let reply = '';
-                const lower = msg.toLowerCase();
-                const hasIdea = data.idea && data.idea.length > 5;
-                const hasProblem = data.problem && data.problem.length > 10;
-                const hasCustomer = data.customer && data.customer.length > 5;
-                const hasEvidence = data.evidence && data.evidence.length > 10;
-
-                if (lower.includes('strong') || lower.includes('idea') || lower.includes('potential')) {
-                    if (!hasIdea || !hasProblem || !hasCustomer) {
-                        reply =
-                            'Your idea is not yet fully defined. I need a clear problem, customer, and evidence to assess strength. Please complete the first three stations.';
-                    } else if (!hasEvidence) {
-                        reply =
-                            'You have an idea, but you lack evidence. Have you interviewed customers? What data supports the problem severity? Without evidence, your validation is weak.';
-                    } else if (readiness.overall > 70) {
-                        reply =
-                            `Your overall readiness is ${readiness.overall}% – that's promising. However, I see gaps in ${Object.keys(readiness).filter(k=>readiness[k]<60).join(', ')}. Focus on those areas.`;
-                    } else {
-                        reply =
-                            `Your readiness is ${readiness.overall}%. The main weakness is ${Object.keys(readiness).reduce((a,b)=>readiness[a]<readiness[b]?a:b)}. Consider getting more customer validation and refining your business model.`;
-                    }
-                } else if (lower.includes('pricing') || lower.includes('price')) {
-                    const price = data.monthlyPrice || 0;
-                    const customers = data.projectedCustomers || 0;
-                    const growth = data.growthRate || 0;
-                    const churn = data.churn || 0;
-                    const cac = data.cac || 0;
-                    const ltv = cac > 0 ? (price * 12) / (churn / 100 + 0.05) : 0;
-                    reply =
-                        `Your pricing is $${price}/mo with ${customers} projected customers. At ${growth}% monthly growth and ${churn}% churn, your LTV is ~$${Math.round(ltv)}. Your CAC is $${cac}. The ratio is ${ltv/cac > 0 ? (ltv/cac).toFixed(1) : 'N/A'} – ${ltv/cac > 3 ? 'healthy' : 'needs improvement'}. Consider reducing CAC or increasing price.`;
-                } else if (lower.includes('mvp') || lower.includes('scope')) {
-                    const features = data.coreFeatures?.length || 0;
-                    const scope = data.mvpScope || '';
-                    const complexity = data.complexity || 50;
-                    reply =
-                        `Your MVP has ${features} core features. Scope: "${scope}". Complexity: ${complexity}%. ${complexity > 70 ? 'This seems complex for an MVP – consider cutting non-essential features.' : 'Complexity looks manageable. Ensure you validate with real users early.'}`;
-                } else if (lower.includes('competition') || lower.includes('competitor')) {
-                    reply =
-                        'You haven\'t defined competitors yet. In the Customer Definition station, you can add competitor analysis. I recommend identifying at least 3 direct competitors and differentiating your solution.';
-                } else if (lower.includes('launch') || lower.includes('go-to-market')) {
-                    if (!data.launchChecklist || data.launchChecklist.length < 10) {
-                        reply = 'Your launch plan is sparse. Define a clear checklist, marketing timeline, and beta program. The Launch Preparation station will help.';
-                    } else {
-                        reply =
-                            'Your launch plan looks reasonable. Ensure you have a clear value proposition for your first 100 customers and a feedback loop.';
-                    }
-                } else if (lower.includes('risk') || lower.includes('challenge')) {
-                    const issues = [];
-                    if (!hasEvidence) issues.push('No customer evidence');
-                    if (readiness.businessModel < 50) issues.push('Weak business model');
-                    if (readiness.product < 50) issues.push('Product not well-defined');
-                    if (data.complexity > 80) issues.push('MVP too complex');
-                    if (data.churn > 8) issues.push('High churn assumption');
-                    if (issues.length === 0) {
-                        reply =
-                            'I don\'t see major risks, but remember: assumptions without evidence are dangerous. Have you validated your pricing and customer willingness to pay?';
-                    } else {
-                        reply = `Key risks: ${issues.join(', ')}. Address these before proceeding.`;
-                    }
-                } else {
-                    reply =
-                        `I'm your Quality Inspector. Based on your current data, I suggest focusing on ${Object.keys(readiness).reduce((a,b)=>readiness[a]<readiness[b]?a:b)}. Have you considered getting more customer feedback? Also, check your assumptions about ${data.pricingStrategy || 'pricing'} and ${data.channels || 'channels'}.`;
-                }
-                msgs.push({ from: 'bot', text: reply });
-                save({ advisorMessages: msgs });
-                setAdvisorInput('');
-                setTimeout(() => {
-                    if (chatEndRef.current) chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
-                }, 50);
-            };
-
-            // ─── Render ──────────────────────────────────────
-            // If not started, show landing
-            if (!data.started) {
-                return (
-                    <div className="landing-hero">
-                        <div className="factory-gif">🏭</div>
-                        <h1>Bring Your Idea Into the Factory</h1>
-                        <p className="sub">AI Startup Factory™ transforms raw ideas into launch‑ready startups through a disciplined production line. Each station builds on the last.</p>
-                        <div className="flex gap-4 flex-wrap justify-center">
-                            <button className="btn-primary text-lg px-8 py-3" onClick={() => goToStation(1)}>
-                                Start the Factory <Icon name="ArrowRight" className="ml-2 inline" />
-                            </button>
-                            <button className="btn-secondary text-lg px-8 py-3" onClick={loadDemo}>
-                                See a Demo
-                            </button>
-                        </div>
-                        <div className="mt-12 grid grid-cols-2 md:grid-cols-5 gap-4 max-w-3xl text-sm text-[#64748b]">
-                            <div>🔍 Idea Inspection</div>
-                            <div>✅ Problem Validation</div>
-                            <div>👥 Customer Definition</div>
-                            <div>📊 Business Model</div>
-                            <div>⚙️ MVP Engineering</div>
-                            <div>📐 Prototype Spec</div>
-                            <div>🎨 Brand Packaging</div>
-                            <div>💰 Revenue Modeling</div>
-                            <div>🚀 Launch Preparation</div>
-                            <div>🔎 Final Quality Control</div>
-                        </div>
-                        <div className="mt-8 text-xs text-[#94a3b8]">
-                            All data stored locally. No sign‑up required.
-                        </div>
-                    </div>
-                );
-            }
-
-            // ─── Factory Floor ──────────────────────────────
-            const currentId = currentStationIndex + 1;
-            const station = stations.find(s => s.id === currentId) || stations[0];
-            const prevId = currentId > 1 ? currentId - 1 : null;
-            const nextId = currentId < 10 ? currentId + 1 : null;
-
-            // Render station content
-            const renderStation = () => {
-                switch (currentId) {
-                    case 1:
-                        return <Station1 data={data} updateField={updateField} complete={() => completeStation(1)} />;
-                    case 2:
-                        return <Station2 data={data} updateField={updateField} complete={() => completeStation(2)} />;
-                    case 3:
-                        return <Station3 data={data} updateField={updateField} complete={() => completeStation(3)} />;
-                    case 4:
-                        return <Station4 data={data} updateField={updateField} complete={() => completeStation(4)} />;
-                    case 5:
-                        return <Station5 data={data} updateField={updateField} complete={() => completeStation(5)} />;
-                    case 6:
-                        return <Station6 data={data} updateField={updateField} complete={() => completeStation(6)} />;
-                    case 7:
-                        return <Station7 data={data} updateField={updateField} complete={() => completeStation(7)} />;
-                    case 8:
-                        return <Station8 data={data} updateField={updateField} complete={() => completeStation(8)} />;
-                    case 9:
-                        return <Station9 data={data} updateField={updateField} complete={() => completeStation(9)} />;
-                    case 10:
-                        return <Station10 data={data} updateField={updateField} complete={() => completeStation(10)}
-                        readiness={readiness} setShowBlueprint={setShowBlueprint} />;
-                    default:
-                        return <div>Unknown station</div>;
-                }
-            };
-
-            // Check if current station is complete
-            const isCurrentComplete = isStationComplete(currentId);
-
-            return (
-                <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8">
-                    {/* Factory Header */}
-                    <div className="factory-header flex flex-col md:flex-row justify-between items-start md:items-center">
-                        <div>
-                            <h1 className="flex items-center gap-2">
-                                <Icon name="Factory" className="w-8 h-8" />
-                                AI Startup Factory™
-                            </h1>
-                            <div className="sub">Production Line — Turn ideas into blueprints</div>
-                        </div>
-                        <div className="flex items-center gap-4 mt-2 md:mt-0">
-                            <div className="readiness-meter">
-                                <span className="text-sm font-medium">Readiness</span>
-                                <div className="meter-bar w-24">
-                                    <div className="meter-fill" style={{ width: readiness.overall + '%' }} />
-                                </div>
-                                <span className="font-bold text-sm">{readiness.overall}%</span>
-                            </div>
-                            <button className="btn-secondary text-sm" onClick={resetFactory}>
-                                <Icon name="Refresh" className="inline mr-1" /> Reset
-                            </button>
-                            {data.isDemo && (
-                                <span className="tag tag-blue text-xs">Demo</span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Production line dots */}
-                    <div className="production-line">
-                        {stations.map((s) => {
-                            const id = s.id;
-                            const complete = isStationComplete(id);
-                            const blocked = isStationBlocked(id);
-                            const active = id === currentId;
-                            let statusClass = '';
-                            if (complete) statusClass = 'completed';
-                            else if (blocked) statusClass = 'blocked';
-                            else if (active) statusClass = 'active';
-                            return (
-                                <div
-                                    key={id}
-                                    className={`station-dot ${statusClass}`}
-                                    onClick={() => goToStation(id)}
-                                >
-                                    <div className="circle">
-                                        {complete ? <Icon name="Check" className="w-5 h-5" /> : id}
-                                    </div>
-                                    <div className="label">{s.label}</div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Station card */}
-                    <div className="max-w-5xl mx-auto">
-                        <div className={`station-card ${isCurrentComplete ? 'completed' : 'active'}`}>
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h2 className="text-xl font-bold text-[#0f172a]">Station {station.id}: {station.label}</h2>
-                                    <p className="text-[#64748b] text-sm">{station.desc}</p>
-                                </div>
-                                <div>
-                                    {isCurrentComplete ? (
-                                        <span className="tag tag-green">✓ Complete</span>
-                                    ) : (
-                                        <span className="tag tag-yellow">In Progress</span>
-                                    )}
-                                </div>
-                            </div>
-                            {renderStation()}
-                            <div className="mt-6 flex justify-between items-center">
-                                <div>
-                                    {prevId && (
-                                        <button className="btn-secondary" onClick={() => goToStation(prevId)}>
-                                            <Icon name="ArrowLeft" className="inline mr-1" /> Previous
-                                        </button>
-                                    )}
-                                </div>
-                                <div>
-                                    {!isCurrentComplete && (
-                                        <button className="btn-primary" onClick={() => {
-                                            // Check if station can be completed (validation)
-                                            // For simplicity, we call completeStation, but stations should validate
-                                            // We'll implement validation inside each station
-                                            // But we'll let the station handle it via its own complete function
-                                            // We'll just call the complete callback
-                                            // But we need to pass a function that checks validation
-                                            // So we'll rely on the station's own logic
-                                            // We'll call the complete function passed from the station
-                                            // Actually, we'll just call the station's complete function
-                                            // But we need to expose it. We'll use a ref? Instead, we'll use the complete prop.
-                                            // The station renders its own complete button, so we don't need this.
-                                        }} />
-                                    )}
-                                    {isCurrentComplete && nextId && (
-                                        <button className="btn-primary" onClick={() => goToStation(nextId)}>
-                                            Next Station <Icon name="ArrowRight" className="inline ml-1" />
-                                        </button>
-                                    )}
-                                    {isCurrentComplete && !nextId && (
-                                        <button className="btn-primary" onClick={() => setShowBlueprint(true)}>
-                                            View Blueprint <Icon name="Download" className="inline ml-1" />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Floating Advisor */}
-                    <button className="floating-advisor" onClick={() => setAdvisorOpen(!advisorOpen)}>
-                        <Icon name="MessageCircle" className="w-6 h-6" />
-                    </button>
-                    <div className={`advisor-chat ${advisorOpen ? 'open' : ''}`}>
-                        <div className="advisor-chat-header">
-                            <span>🔎 Quality Inspector</span>
-                            <button onClick={() => setAdvisorOpen(false)} style={{ background: 'none', border: 'none',
-                                    color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
-                        </div>
-                        <div className="advisor-chat-body" ref={chatEndRef}>
-                            {(data.advisorMessages || []).map((m, i) => (
-                                <div key={i} className={m.from === 'bot' ? 'msg-bot' : 'msg-user'}>
-                                    {m.text}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="advisor-chat-footer">
-                            <input
-                                placeholder="Ask about your startup..."
-                                value={advisorInput}
-                                onChange={(e) => setAdvisorInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleAdvisorAsk()}
-                            />
-                            <button onClick={handleAdvisorAsk}>Send</button>
-                        </div>
-                    </div>
-
-                    {/* Blueprint Modal */}
-                    {showBlueprint && (
-                        <div className="modal-overlay" onClick={() => setShowBlueprint(false)}>
-                            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-                                <button className="close" onClick={() => setShowBlueprint(false)}>✕</button>
-                                <h2 className="text-2xl font-bold mb-4">📄 Startup Blueprint</h2>
-                                <div className="scrollable" id="blueprint-content">
-                                    <BlueprintContent data={data} readiness={readiness} />
-                                </div>
-                                <div className="mt-4 flex gap-3">
-                                    <button className="btn-primary" onClick={() => window.print()}>
-                                        <Icon name="Download" className="inline mr-1" /> Print
-                                    </button>
-                                    <button className="btn-secondary" onClick={() => setShowBlueprint(false)}>Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        // ─── Station Components ──────────────────────────────
-
-        // Station 1: Idea Inspection
-        function Station1({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (!data.idea || data.idea.length < 5) err.idea = 'Please describe your idea in at least 5 characters.';
-                if (!data.problem || data.problem.length < 10) err.problem =
-                'Describe the problem you are solving in detail.';
-                if (!data.customer || data.customer.length < 5) err.customer =
-                'Who is your target customer? Be specific.';
-                if (!data.desiredOutcome || data.desiredOutcome.length < 5) err.desiredOutcome =
-                    'What is the desired business outcome?';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            return (
-                <div>
-                    <div className="grid-2">
-                        <div className="form-group">
-                            <label>Startup Idea *</label>
-                            <textarea rows={3} value={data.idea || ''} onChange={(e) => updateField('idea', e.target
-                                    .value)} placeholder="What is your startup idea?" />
-                            {errors.idea && <p className="text-red-500 text-xs mt-1">{errors.idea}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Problem Being Solved *</label>
-                            <textarea rows={3} value={data.problem || ''} onChange={(e) => updateField('problem', e
-                                    .target.value)} placeholder="What is the core problem?" />
-                            {errors.problem && <p className="text-red-500 text-xs mt-1">{errors.problem}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Target Customer *</label>
-                            <input type="text" value={data.customer || ''} onChange={(e) => updateField('customer', e
-                                    .target.value)} placeholder="e.g., Small medical clinics" />
-                            {errors.customer && <p className="text-red-500 text-xs mt-1">{errors.customer}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Budget ($) *</label>
-                            <input type="number" value={data.budget || 0} onChange={(e) => updateField('budget', Number(e
-                                    .target.value))} />
-                        </div>
-                        <div className="form-group">
-                            <label>Founder Experience</label>
-                            <select value={data.founderExperience || 'Intermediate'} onChange={(e) => updateField(
-                                    'founderExperience', e.target.value)}>
-                                <option value="Beginner">Beginner</option>
-                                <option value="Intermediate">Intermediate</option>
-                                <option value="Advanced">Advanced</option>
-                            </select>
-                        </div>
-                        <div className="form-group">
-                            <label>Desired Business Outcome *</label>
-                            <input type="text" value={data.desiredOutcome || ''} onChange={(e) => updateField(
-                                    'desiredOutcome', e.target.value)} placeholder="e.g., Reduce scheduling time by 80%" />
-                            {errors.desiredOutcome && <p className="text-red-500 text-xs mt-1">{errors.desiredOutcome}</p>}
-                        </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Inspect & Pass Idea <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 2: Problem Validation
-        function Station2({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (!data.evidence || data.evidence.length < 10) err.evidence =
-                    'Provide evidence for the problem (e.g., customer interviews, data).';
-                if (data.problemSeverity < 30) err.problemSeverity = 'Problem severity seems low. Is it a real pain point?';
-                if (data.customerPain < 30) err.customerPain = 'Customer pain seems low. Is this truly urgent?';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            return (
-                <div>
-                    <div className="grid-2">
-                        <div className="form-group">
-                            <label>Problem Severity (0–100)</label>
-                            <input type="range" className="slider" min="0" max="100" value={data.problemSeverity || 50}
-                            onChange={(e) => updateField('problemSeverity', Number(e.target.value))} />
-                            <div className="text-lg font-bold text-[#4f46e5]">{data.problemSeverity || 50}%</div>
-                            {errors.problemSeverity && <p className="text-red-500 text-xs mt-1">{errors.problemSeverity}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Customer Pain (0–100)</label>
-                            <input type="range" className="slider" min="0" max="100" value={data.customerPain || 50}
-                            onChange={(e) => updateField('customerPain', Number(e.target.value))} />
-                            <div className="text-lg font-bold text-[#4f46e5]">{data.customerPain || 50}%</div>
-                            {errors.customerPain && <p className="text-red-500 text-xs mt-1">{errors.customerPain}</p>}
-                        </div>
-                        <div className="form-group col-span-2">
-                            <label>Evidence / Validation *</label>
-                            <textarea rows={3} value={data.evidence || ''} onChange={(e) => updateField('evidence', e
-                                    .target.value)} placeholder="What evidence do you have? Customer interviews, surveys, data?" />
-                            {errors.evidence && <p className="text-red-500 text-xs mt-1">{errors.evidence}</p>}
-                        </div>
-                    </div>
-                    <div className="mt-4 p-3 bg-[#f1f5f9] rounded-xl text-sm text-[#475569]">
-                        💡 <strong>Tip:</strong> Real validation comes from talking to customers. If you haven't, your evidence is weak.
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Validate Problem <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 3: Customer Definition
-        function Station3({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (!data.personas || data.personas.length === 0 || data.personas.some(p => !p.name || !p.role)) {
-                    err.personas = 'Define at least one persona with name and role.';
-                }
-                if (!data.segments || data.segments.length === 0) err.segments = 'Define at least one customer segment.';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            const addPersona = () => {
-                const personas = [...(data.personas || []), { name: '', role: '', pain: '', goal: '' }];
-                updateField('personas', personas);
-            };
-            const updatePersona = (idx, field, value) => {
-                const personas = [...(data.personas || [])];
-                personas[idx][field] = value;
-                updateField('personas', personas);
-            };
-            const addSegment = (e) => {
-                if (e.key === 'Enter' && e.target.value.trim()) {
-                    const segments = [...(data.segments || []), e.target.value.trim()];
-                    updateField('segments', segments);
-                    e.target.value = '';
-                }
-            };
-            return (
-                <div>
-                    <div className="form-group">
-                        <label>Target Personas *</label>
-                        {(data.personas || []).map((p, i) => (
-                            <div key={i} className="grid grid-cols-2 gap-2 mb-2 p-2 bg-[#f8fafc] rounded">
-                                <input placeholder="Name" value={p.name || ''} onChange={(e) => updatePersona(i,
-                                        'name', e.target.value)} />
-                                <input placeholder="Role" value={p.role || ''} onChange={(e) => updatePersona(i,
-                                        'role', e.target.value)} />
-                                <input placeholder="Pain" value={p.pain || ''} onChange={(e) => updatePersona(i,
-                                        'pain', e.target.value)} />
-                                <input placeholder="Goal" value={p.goal || ''} onChange={(e) => updatePersona(i,
-                                        'goal', e.target.value)} />
-                            </div>
-                        ))}
-                        {errors.personas && <p className="text-red-500 text-xs mt-1">{errors.personas}</p>}
-                        <button className="btn-outline text-sm" onClick={addPersona}>+ Add Persona</button>
-                    </div>
-                    <div className="form-group">
-                        <label>Customer Segments *</label>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                            {(data.segments || []).map((s, i) => <span key={i} className="tag tag-blue">{s}</span>)}
-                        </div>
-                        <input className="text-sm" placeholder="Add segment (press Enter)" onKeyDown={addSegment} />
-                        {errors.segments && <p className="text-red-500 text-xs mt-1">{errors.segments}</p>}
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Define Customers <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 4: Business Model
-        function Station4({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (!data.valueProp || data.valueProp.length < 10) err.valueProp =
-                'Define a clear value proposition.';
-                if (!data.revenueModel || data.revenueModel.length < 3) err.revenueModel = 'Specify a revenue model.';
-                if (!data.pricingStrategy || data.pricingStrategy.length < 3) err.pricingStrategy =
-                    'Define your pricing strategy.';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            return (
-                <div>
-                    <div className="grid-2">
-                        <div className="form-group">
-                            <label>Value Proposition *</label>
-                            <textarea rows={2} value={data.valueProp || ''} onChange={(e) => updateField('valueProp',
-                                    e.target.value)} placeholder="What value do you deliver?" />
-                            {errors.valueProp && <p className="text-red-500 text-xs mt-1">{errors.valueProp}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Revenue Model *</label>
-                            <input type="text" value={data.revenueModel || ''} onChange={(e) => updateField(
-                                    'revenueModel', e.target.value)} placeholder="e.g., Subscription" />
-                            {errors.revenueModel && <p className="text-red-500 text-xs mt-1">{errors.revenueModel}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Pricing Strategy *</label>
-                            <input type="text" value={data.pricingStrategy || ''} onChange={(e) => updateField(
-                                    'pricingStrategy', e.target.value)} placeholder="e.g., Tiered pricing" />
-                            {errors.pricingStrategy && <p className="text-red-500 text-xs mt-1">{errors.pricingStrategy}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Sales & Marketing Channels</label>
-                            <input type="text" value={data.channels || ''} onChange={(e) => updateField('channels', e
-                                    .target.value)} placeholder="e.g., Direct sales, webinars" />
-                        </div>
-                        <div className="form-group col-span-2">
-                            <label>Cost Structure</label>
-                            <textarea rows={2} value={data.costStructure || ''} onChange={(e) => updateField(
-                                    'costStructure', e.target.value)} placeholder="Major cost drivers" />
-                        </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Assemble Model <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 5: MVP Engineering
-        function Station5({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (!data.coreFeatures || data.coreFeatures.length === 0) err.coreFeatures =
-                    'Define at least one core feature.';
-                if (!data.mvpScope || data.mvpScope.length < 10) err.mvpScope = 'Describe your MVP scope.';
-                if (data.complexity > 80) err.complexity =
-                'MVP complexity is very high. Consider simplifying to reduce risk.';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            const addFeature = (e) => {
-                if (e.key === 'Enter' && e.target.value.trim()) {
-                    const features = [...(data.coreFeatures || []), e.target.value.trim()];
-                    updateField('coreFeatures', features);
-                    e.target.value = '';
-                }
-            };
-            return (
-                <div>
-                    <div className="grid-2">
-                        <div className="form-group">
-                            <label>Core Features *</label>
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                {(data.coreFeatures || []).map((f, i) => <span key={i} className="tag tag-blue">{f}</span>)}
-                            </div>
-                            <input className="text-sm" placeholder="Add feature (press Enter)" onKeyDown={addFeature} />
-                            {errors.coreFeatures && <p className="text-red-500 text-xs mt-1">{errors.coreFeatures}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>MVP Scope *</label>
-                            <textarea rows={2} value={data.mvpScope || ''} onChange={(e) => updateField('mvpScope', e
-                                    .target.value)} placeholder="What is the minimum viable product?" />
-                            {errors.mvpScope && <p className="text-red-500 text-xs mt-1">{errors.mvpScope}</p>}
-                        </div>
-                        <div className="form-group col-span-2">
-                            <label>Complexity (0–100) – lower is simpler</label>
-                            <input type="range" className="slider" min="0" max="100" value={data.complexity || 50}
-                            onChange={(e) => updateField('complexity', Number(e.target.value))} />
-                            <div className="text-lg font-bold text-[#4f46e5]">{data.complexity || 50}%</div>
-                            {errors.complexity && <p className="text-red-500 text-xs mt-1">{errors.complexity}</p>}
-                        </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Engineer MVP <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 6: Prototype Specification – auto-generated
-        function Station6({ data, updateField, complete }) {
-            // Generate spec based on previous data
-            const generateSpec = () => {
-                const features = (data.coreFeatures || []).join(', ');
-                const mvp = data.mvpScope || 'Not defined';
-                const customer = data.customer || 'Not defined';
-                const problem = data.problem || 'Not defined';
-                const budget = data.budget || 0;
-                const complexity = data.complexity || 50;
-                const techStack = complexity > 70 ? 'Consider using a framework like React and Node.js, but simplify if possible.' :
-                    'React, Node.js, PostgreSQL is a solid stack.';
-                const spec = `## Build Specification
-
-### Executive Summary
-**Startup Idea:** ${data.idea || 'Not defined'}
-**Problem:** ${problem}
-**Customer:** ${customer}
-**Budget:** $${budget}
-
-### MVP Features
-${features || 'None defined'}
-
-### MVP Scope
-${mvp}
-
-### Technical Recommendations
-- **Tech Stack:** ${techStack}
-- **Complexity Level:** ${complexity}% (${complexity > 70 ? 'High – consider reducing scope' : 'Moderate – manageable'})
-- **APIs Needed:** Consider calendar APIs (Google/Outlook), SMS/email services, and payment processing.
-
-### Data Model Suggestions
-- Users, Appointments, Services, Payments
-
-### UI/UX Recommendations
-- Clean, professional design aligned with brand (if defined)
-- Mobile-responsive
-- Focus on ease of use for the primary user: ${customer}
-
-### Deployment
-- Frontend: Vercel or Netlify
-- Backend: AWS or Heroku
-- Database: PostgreSQL or MongoDB
-
-### Next Steps
-1. Validate the MVP with real users.
-2. Refine features based on feedback.
-3. Build a prototype using the above spec.
-
----
-*This specification was automatically generated by AI Startup Factory™ based on your inputs.*`;
-                updateField('prototypeSpec', spec);
-                complete();
-            };
-            return (
-                <div>
-                    <p className="text-[#64748b] mb-4">This station generates a build-ready specification based on your previous inputs. Click the button below to generate it.</p>
-                    {data.prototypeSpec ? (
-                        <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e9edf2] whitespace-pre-wrap text-sm max-h-80 overflow-y-auto">
-                            {data.prototypeSpec}
-                        </div>
-                    ) : (
-                        <div className="p-6 bg-[#f1f5f9] rounded-xl text-center text-[#64748b]">
-                            No specification generated yet.
-                        </div>
-                    )}
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={generateSpec} disabled={!data.coreFeatures || data
-                                .coreFeatures.length === 0}>
-                            {data.prototypeSpec ? 'Regenerate' : 'Generate Specification'}
-                        </button>
-                        {data.prototypeSpec && (
-                            <button className="btn-secondary ml-2" onClick={() => complete()}>
-                                Mark Complete
-                            </button>
-                        )}
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 7: Brand Packaging
-        function Station7({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (!data.companyName || data.companyName.length < 2) err.companyName = 'Enter a company name.';
-                if (!data.tagline || data.tagline.length < 5) err.tagline = 'Define a tagline.';
-                if (!data.brandVoice || data.brandVoice.length < 5) err.brandVoice = 'Describe your brand voice.';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            return (
-                <div>
-                    <div className="grid-2">
-                        <div className="form-group">
-                            <label>Company Name *</label>
-                            <input type="text" value={data.companyName || ''} onChange={(e) => updateField(
-                                    'companyName', e.target.value)} placeholder="e.g., SmartClinic AI" />
-                            {errors.companyName && <p className="text-red-500 text-xs mt-1">{errors.companyName}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Tagline *</label>
-                            <input type="text" value={data.tagline || ''} onChange={(e) => updateField('tagline', e
-                                    .target.value)} placeholder="e.g., Smarter scheduling for better care" />
-                            {errors.tagline && <p className="text-red-500 text-xs mt-1">{errors.tagline}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Brand Voice *</label>
-                            <input type="text" value={data.brandVoice || ''} onChange={(e) => updateField(
-                                    'brandVoice', e.target.value)} placeholder="e.g., Professional, caring, innovative" />
-                            {errors.brandVoice && <p className="text-red-500 text-xs mt-1">{errors.brandVoice}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Color Palette</label>
-                            <input type="text" value={data.colorPalette || ''} onChange={(e) => updateField(
-                                    'colorPalette', e.target.value)} placeholder="e.g., #0A7E8C, #F5A623" />
-                        </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Package Brand <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 8: Revenue Modeling
-        function Station8({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (data.monthlyPrice <= 0) err.monthlyPrice = 'Set a positive monthly price.';
-                if (data.projectedCustomers <= 0) err.projectedCustomers = 'Enter projected customers.';
-                if (data.growthRate < 0) err.growthRate = 'Growth rate must be non-negative.';
-                if (data.churn < 0 || data.churn > 20) err.churn = 'Churn should be between 0 and 20%.';
-                if (data.cac <= 0) err.cac = 'Customer Acquisition Cost must be positive.';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            // Compute metrics
-            const mrr = data.monthlyPrice * data.projectedCustomers;
-            const arr = mrr * 12;
-            const ltv = data.cac > 0 ? (data.monthlyPrice * 12) / (data.churn / 100 + 0.05) : 0;
-            const ratio = data.cac > 0 ? ltv / data.cac : 0;
-            return (
-                <div>
-                    <div className="grid-2">
-                        <div className="form-group">
-                            <label>Monthly Price ($) *</label>
-                            <input type="number" value={data.monthlyPrice || 0} onChange={(e) => updateField(
-                                    'monthlyPrice', Number(e.target.value))} />
-                            {errors.monthlyPrice && <p className="text-red-500 text-xs mt-1">{errors.monthlyPrice}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Projected Customers *</label>
-                            <input type="number" value={data.projectedCustomers || 0} onChange={(e) => updateField(
-                                    'projectedCustomers', Number(e.target.value))} />
-                            {errors.projectedCustomers && <p className="text-red-500 text-xs mt-1">{errors
-                                    .projectedCustomers}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Monthly Growth Rate (%) *</label>
-                            <input type="number" value={data.growthRate || 0} onChange={(e) => updateField(
-                                    'growthRate', Number(e.target.value))} />
-                            {errors.growthRate && <p className="text-red-500 text-xs mt-1">{errors.growthRate}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>Monthly Churn (%) *</label>
-                            <input type="number" value={data.churn || 0} onChange={(e) => updateField('churn', Number(e
-                                    .target.value))} />
-                            {errors.churn && <p className="text-red-500 text-xs mt-1">{errors.churn}</p>}
-                        </div>
-                        <div className="form-group">
-                            <label>CAC ($) *</label>
-                            <input type="number" value={data.cac || 0} onChange={(e) => updateField('cac', Number(e
-                                    .target.value))} />
-                            {errors.cac && <p className="text-red-500 text-xs mt-1">{errors.cac}</p>}
-                        </div>
-                    </div>
-                    <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e9edf2] mt-2">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div><span className="text-[#64748b]">MRR</span> <span className="font-bold">${mrr.toLocaleString()}</span></div>
-                            <div><span className="text-[#64748b]">ARR</span> <span className="font-bold">${arr.toLocaleString()}</span></div>
-                            <div><span className="text-[#64748b]">LTV</span> <span className="font-bold">${Math.round(ltv).toLocaleString()}</span></div>
-                            <div><span className="text-[#64748b]">LTV/CAC</span> <span className="font-bold">{ratio.toFixed(1)}</span></div>
-                        </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Model Revenue <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 9: Launch Preparation
-        function Station9({ data, updateField, complete }) {
-            const [errors, setErrors] = useState({});
-            const handleComplete = () => {
-                const err = {};
-                if (!data.launchChecklist || data.launchChecklist.length < 10) err.launchChecklist =
-                    'Define a launch checklist.';
-                if (!data.marketingPlan || data.marketingPlan.length < 10) err.marketingPlan =
-                    'Describe your marketing plan.';
-                if (!data.betaPlan || data.betaPlan.length < 10) err.betaPlan = 'Describe your beta program.';
-                setErrors(err);
-                if (Object.keys(err).length === 0) {
-                    complete();
-                }
-            };
-            return (
-                <div>
-                    <div className="grid-2">
-                        <div className="form-group col-span-2">
-                            <label>Launch Checklist *</label>
-                            <textarea rows={3} value={data.launchChecklist || ''} onChange={(e) => updateField(
-                                    'launchChecklist', e.target.value)} placeholder="List key tasks for launch" />
-                            {errors.launchChecklist && <p className="text-red-500 text-xs mt-1">{errors.launchChecklist}</p>}
-                        </div>
-                        <div className="form-group col-span-2">
-                            <label>Marketing Plan *</label>
-                            <textarea rows={3} value={data.marketingPlan || ''} onChange={(e) => updateField(
-                                    'marketingPlan', e.target.value)} placeholder="Describe your go-to-market strategy" />
-                            {errors.marketingPlan && <p className="text-red-500 text-xs mt-1">{errors.marketingPlan}</p>}
-                        </div>
-                        <div className="form-group col-span-2">
-                            <label>Beta Program *</label>
-                            <textarea rows={3} value={data.betaPlan || ''} onChange={(e) => updateField('betaPlan', e
-                                    .target.value)} placeholder="How will you test with early users?" />
-                            {errors.betaPlan && <p className="text-red-500 text-xs mt-1">{errors.betaPlan}</p>}
-                        </div>
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete}>
-                            Prepare Launch <Icon name="ArrowRight" className="inline ml-1" />
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // Station 10: Final Quality Control
-        function Station10({ data, updateField, complete, readiness, setShowBlueprint }) {
-            const [issues, setIssues] = useState([]);
-            const [auditPassed, setAuditPassed] = useState(false);
-            useEffect(() => {
-                // Perform audit
-                const found = [];
-                if (!data.evidence || data.evidence.length < 10) found.push(
-                    'Lack of customer evidence – validate with real users.');
-                if (readiness.validation < 50) found.push('Validation score is low – strengthen problem and customer understanding.');
-                if (readiness.businessModel < 50) found.push('Business model is weak – clarify value proposition and revenue.');
-                if (readiness.product < 50) found.push('Product definition is incomplete – define MVP features and scope.');
-                if (readiness.brand < 40) found.push('Brand identity is underdeveloped – define name, tagline, and voice.');
-                if (readiness.pricing < 50) found.push('Pricing model needs refinement – ensure LTV/CAC ratio > 3.');
-                if (readiness.launch < 50) found.push('Launch plan is insufficient – create a detailed go-to-market strategy.');
-                if (data.complexity > 80) found.push('MVP complexity is high – consider reducing scope to de-risk.');
-                if (data.churn > 8) found.push('Churn assumption is high – validate with industry benchmarks.');
-                if (data.cac > data.monthlyPrice * 12 * 0.5) found.push(
-                'CAC is high relative to LTV – optimize acquisition channels.');
-                setIssues(found);
-                setAuditPassed(found.length === 0);
-                // Update data with audit results
-                updateField('auditIssues', found);
-                updateField('auditPassed', found.length === 0);
-            }, [data, readiness]);
-            const handleComplete = () => {
-                if (auditPassed) {
-                    complete();
-                    setShowBlueprint(true);
-                } else {
-                    alert('Please address the issues before marking as complete.');
-                }
-            };
-            return (
-                <div>
-                    <p className="text-[#64748b] mb-4">This station performs a final audit of your startup. It checks for missing evidence, weak scores, and risks.</p>
-                    <div className="bg-[#f8fafc] p-4 rounded-xl border border-[#e9edf2]">
-                        <h3 className="font-bold">Audit Report</h3>
-                        {issues.length === 0 ? (
-                            <div className="text-green-600 mt-2">✅ All checks passed! Your startup is ready for the blueprint.</div>
-                        ) : (
-                            <ul className="list-disc list-inside text-red-600 mt-2">
-                                {issues.map((issue, i) => <li key={i}>{issue}</li>)}
-                            </ul>
-                        )}
-                    </div>
-                    <div className="mt-4 flex justify-end">
-                        <button className="btn-primary" onClick={handleComplete} disabled={!auditPassed}>
-                            {auditPassed ? 'Approve & Generate Blueprint' : 'Fix Issues First'}
-                        </button>
-                        {auditPassed && (
-                            <button className="btn-secondary ml-2" onClick={() => setShowBlueprint(true)}>
-                                View Blueprint
-                            </button>
-                        )}
-                    </div>
-                </div>
-            );
-        }
-
-        // ─── Blueprint Content ──────────────────────────────
-        function BlueprintContent({ data, readiness }) {
-            return (
-                <div className="text-sm">
-                    <div className="blueprint-section">
-                        <h3 className="font-bold text-lg">📋 Executive Summary</h3>
-                        <p><strong>Startup:</strong> {data.companyName || 'Not defined'}</p>
-                        <p><strong>Idea:</strong> {data.idea || 'Not defined'}</p>
-                        <p><strong>Problem:</strong> {data.problem || 'Not defined'}</p>
-                        <p><strong>Customer:</strong> {data.customer || 'Not defined'}</p>
-                        <p><strong>Overall Readiness:</strong> {readiness.overall}%</p>
-                        <p><strong>Validation:</strong> {readiness.validation}%</p>
-                        <p><strong>Business Model:</strong> {readiness.businessModel}%</p>
-                        <p><strong>Product:</strong> {readiness.product}%</p>
-                        <p><strong>Brand:</strong> {readiness.brand}%</p>
-                        <p><strong>Pricing:</strong> {readiness.pricing}%</p>
-                        <p><strong>Launch:</strong> {readiness.launch}%</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">🔍 Problem Validation</h4>
-                        <p><strong>Severity:</strong> {data.problemSeverity}%</p>
-                        <p><strong>Customer Pain:</strong> {data.customerPain}%</p>
-                        <p><strong>Evidence:</strong> {data.evidence || 'Not provided'}</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">👥 Customer Definition</h4>
-                        <p><strong>Personas:</strong></p>
-                        <ul className="list-disc list-inside">
-                            {(data.personas || []).map((p, i) => <li key={i}>{p.name} ({p.role}) – Pain: {p.pain}, Goal: {p
-                                    .goal}</li>)}
-                        </ul>
-                        <p><strong>Segments:</strong> {(data.segments || []).join(', ')}</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">📊 Business Model</h4>
-                        <p><strong>Value Prop:</strong> {data.valueProp || 'Not defined'}</p>
-                        <p><strong>Revenue:</strong> {data.revenueModel || 'Not defined'}</p>
-                        <p><strong>Pricing:</strong> {data.pricingStrategy || 'Not defined'}</p>
-                        <p><strong>Channels:</strong> {data.channels || 'Not defined'}</p>
-                        <p><strong>Cost Structure:</strong> {data.costStructure || 'Not defined'}</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">⚙️ MVP Engineering</h4>
-                        <p><strong>Core Features:</strong> {(data.coreFeatures || []).join(', ')}</p>
-                        <p><strong>MVP Scope:</strong> {data.mvpScope || 'Not defined'}</p>
-                        <p><strong>Complexity:</strong> {data.complexity}%</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">📐 Prototype Specification</h4>
-                        <pre className="whitespace-pre-wrap bg-[#f8fafc] p-2 rounded text-xs">{data.prototypeSpec ||
-                                'Not generated'}</pre>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">🎨 Brand</h4>
-                        <p><strong>Name:</strong> {data.companyName || 'Not defined'}</p>
-                        <p><strong>Tagline:</strong> {data.tagline || 'Not defined'}</p>
-                        <p><strong>Voice:</strong> {data.brandVoice || 'Not defined'}</p>
-                        <p><strong>Colors:</strong> {data.colorPalette || 'Not defined'}</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">💰 Revenue Model</h4>
-                        <p><strong>Price:</strong> ${data.monthlyPrice}</p>
-                        <p><strong>Projected Customers:</strong> {data.projectedCustomers}</p>
-                        <p><strong>Growth:</strong> {data.growthRate}% monthly</p>
-                        <p><strong>Churn:</strong> {data.churn}%</p>
-                        <p><strong>CAC:</strong> ${data.cac}</p>
-                        <p><strong>MRR:</strong> ${(data.monthlyPrice * data.projectedCustomers).toLocaleString()}</p>
-                        <p><strong>ARR:</strong> ${(data.monthlyPrice * data.projectedCustomers * 12).toLocaleString()}</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">🚀 Launch Plan</h4>
-                        <p><strong>Checklist:</strong> {data.launchChecklist || 'Not defined'}</p>
-                        <p><strong>Marketing:</strong> {data.marketingPlan || 'Not defined'}</p>
-                        <p><strong>Beta:</strong> {data.betaPlan || 'Not defined'}</p>
-                    </div>
-                    <hr className="my-4" />
-                    <div className="blueprint-section">
-                        <h4 className="font-bold">🔎 Final Audit</h4>
-                        <p><strong>Passed:</strong> {data.auditPassed ? '✅ Yes' : '❌ No'}</p>
-                        {data.auditIssues && data.auditIssues.length > 0 && (
-                            <ul className="list-disc list-inside text-red-600">
-                                {data.auditIssues.map((issue, i) => <li key={i}>{issue}</li>)}
-                            </ul>
-                        )}
-                    </div>
-                    <div className="mt-4 p-3 bg-[#f1f5f9] rounded-xl text-xs text-[#64748b]">
-                        Generated by AI Startup Factory™ — {new Date().toLocaleDateString()}
-                    </div>
-                </div>
-            );
-        }
-
-        // ─── Mount ──────────────────────────────────────────
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+<div id="landing" class="landing">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">🏭 NOFA AI Factory Prototype</div>
+      <h1>Bring the idea.<br>Leave with the startup.</h1>
+      <p class="lead">AI Startup Factory™ evaluates a raw idea, challenges unsupported assumptions, narrows the MVP, generates the product architecture, and produces a build-ready startup blueprint.</p>
+      <div class="hero-actions">
+        <button class="btn primary" id="startBtn">Start the Factory →</button>
+        <button class="btn secondary" id="demoBtn">Load Demonstration</button>
+      </div>
+    </div>
+    <div class="factory-preview">
+      <div style="font-size:1.2rem;font-weight:900">Startup Production Line</div>
+      <div style="color:#aebbd0;margin-top:7px">Every station transforms the output of the station before it.</div>
+      <div class="belt">
+        <div class="mini-stage"><span>💡</span><b>Idea</b></div>
+        <div class="mini-stage"><span>🔍</span><b>Validate</b></div>
+        <div class="mini-stage"><span>⚙️</span><b>Engineer</b></div>
+        <div class="mini-stage"><span>🧱</span><b>Specify</b></div>
+        <div class="mini-stage"><span>🚀</span><b>Launch</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <header class="topbar">
+    <div class="brandline">
+      <div class="brandmark">🏭</div>
+      <div><strong>AI Startup Factory™</strong><div style="color:#aebbd0;font-size:.78rem">From raw idea to build-ready startup</div></div>
+    </div>
+    <div class="top-actions">
+      <div class="score-pill">Readiness <strong id="topScore">0%</strong></div>
+      <button class="btn secondary" id="blueprintBtn">View Blueprint</button>
+      <button class="btn secondary" id="resetBtn">Reset</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="panel rail">
+      <div style="font-weight:900;margin:4px 4px 12px">Production Stations</div>
+      <div id="stationNav"></div>
+    </aside>
+
+    <main class="panel main">
+      <div id="stationContent"></div>
+    </main>
+
+    <aside class="panel right">
+      <div class="quality">
+        <h3>Quality Inspector</h3>
+        <div class="score-big" id="qualityScore">0%</div>
+        <div class="small">Current startup readiness</div>
+        <div style="margin:16px 0" class="bar"><div class="fill" id="qualityBar" style="width:0%"></div></div>
+        <div id="qualityIssues"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="blueprintModal" class="blueprint hidden">
+  <div class="blueprint-card">
+    <div id="blueprintContent"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="closeBlueprint">Close</button>
+      <button class="btn primary" onclick="window.print()">Print / Save PDF</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "nofa_ai_startup_factory_v3";
+
+const stations = [
+  ["Idea Inspection","Clarify the raw concept and founder constraints."],
+  ["Evidence Gate","Separate assumptions from actual validation."],
+  ["Customer Architecture","Define the buyer, user, pain, and decision process."],
+  ["Business Model Assembly","Connect value, pricing, channels, and cost structure."],
+  ["MVP Engineering","Cut the concept to the smallest credible product."],
+  ["Product Architecture","Generate pages, data models, workflows, and integrations."],
+  ["Build Specification","Produce implementation-ready instructions for an AI builder."],
+  ["Brand Packaging","Create positioning, naming, voice, and message hierarchy."],
+  ["Revenue & Launch","Model economics and create the first-customer plan."],
+  ["Final Quality Control","Audit contradictions, risks, and build readiness."]
+];
+
+function freshState(){
+  return {
+    started:false,current:0,completed:[],
+    idea:"",problem:"",customer:"",budget:15000,experience:"Intermediate",outcome:"",
+    evidenceType:"None",evidenceDetails:"",interviews:0,willingness:"Unknown",
+    buyer:"",user:"",painFrequency:"Weekly",currentAlternative:"",decisionTrigger:"",
+    valueProp:"",revenueModel:"Subscription SaaS",price:99,channels:"",costs:"",
+    mustHave:"",niceToHave:"",complexity:50,launchWeeks:8,
+    integrations:"",dataSensitivity:"Low",brandName:"",tagline:"",voice:"",
+    projectedCustomers:25,growth:8,churn:4,cac:250,betaPlan:"",launchPlan:"",
+    assumptions:[],prototypeSpec:"",buildSpec:""
+  };
+}
+let state = load();
+
+function load(){
+  try{return {...freshState(),...JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}}catch(e){return freshState()}
+}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));render()}
+function esc(v=""){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function listFrom(v){return String(v||"").split(/\n|,/).map(x=>x.trim()).filter(Boolean)}
+function field(id,label,type="text",helper="",opts=[]){
+  const v=state[id]??"";
+  if(type==="textarea") return `<div class="field"><label>${label}</label><textarea data-field="${id}" placeholder="${helper}">${esc(v)}</textarea>${helper?`<div class="helper">${helper}</div>`:""}</div>`;
+  if(type==="select") return `<div class="field"><label>${label}</label><select data-field="${id}">${opts.map(o=>`<option ${v===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>`;
+  if(type==="range") return `<div class="field"><label>${label}: <strong>${v}</strong></label><input data-field="${id}" type="range" min="0" max="100" value="${v}"></div>`;
+  return `<div class="field"><label>${label}</label><input data-field="${id}" type="${type}" value="${esc(v)}" placeholder="${helper}">${helper?`<div class="helper">${helper}</div>`:""}</div>`;
+}
+function evidenceScore(){
+  let s=0;
+  if(state.evidenceType==="Customer interviews") s+=25;
+  if(state.evidenceType==="Paid pilot or preorders") s+=45;
+  if(state.evidenceType==="Usage data") s+=40;
+  if(state.evidenceDetails.length>40) s+=20;
+  s+=Math.min(state.interviews*2,20);
+  if(state.willingness==="Confirmed") s+=20;
+  if(state.willingness==="Likely") s+=10;
+  return Math.min(100,s);
+}
+function scores(){
+  const evidence=evidenceScore();
+  const customer=Math.min(100,
+    (state.customer.length>8?20:0)+(state.buyer.length>5?20:0)+(state.user.length>5?15:0)+
+    (state.currentAlternative.length>8?20:0)+(state.decisionTrigger.length>8?15:0)+(state.painFrequency==="Daily"?10:5));
+  const business=Math.min(100,
+    (state.valueProp.length>20?30:0)+(state.revenueModel?15:0)+(state.price>0?15:0)+
+    (state.channels.length>10?20:0)+(state.costs.length>10?20:0));
+  const product=Math.min(100,
+    (listFrom(state.mustHave).length>=2?30:10)+(state.prototypeSpec.length>100?30:0)+
+    (state.buildSpec.length>200?30:0)+(state.complexity<=70?10:0));
+  const launch=Math.min(100,(state.betaPlan.length>20?35:0)+(state.launchPlan.length>30?35:0)+(state.projectedCustomers>0?15:0)+(state.cac>0?15:0));
+  const overall=Math.round(evidence*.28+customer*.18+business*.18+product*.22+launch*.14);
+  return {evidence,customer,business,product,launch,overall};
+}
+function quality(){
+  const q=[];
+  if(!state.problem || state.problem.length<20) q.push(["bad","Problem statement is too vague."]);
+  if(evidenceScore()<40) q.push(["bad","Customer evidence is weak or missing."]);
+  if(state.willingness==="Unknown") q.push(["warn","Willingness to pay is unverified."]);
+  if(!state.currentAlternative) q.push(["warn","Current customer alternative is undefined."]);
+  if(listFrom(state.mustHave).length>5) q.push(["warn","MVP likely contains too many must-have features."]);
+  if(state.complexity>75 && state.budget<30000) q.push(["bad","Complexity and budget are inconsistent."]);
+  if(state.launchWeeks<6 && state.complexity>60) q.push(["warn","Launch timeline appears aggressive."]);
+  if(state.price>0 && state.cac>state.price*6) q.push(["warn","CAC may be too high relative to monthly price."]);
+  if(q.length===0) q.push(["good","No major contradictions detected."]);
+  return q;
+}
+function canComplete(i){
+  const rules=[
+    state.idea.length>8 && state.problem.length>15 && state.customer.length>5,
+    evidenceScore()>=25,
+    state.buyer.length>3 && state.user.length>3 && state.currentAlternative.length>5,
+    state.valueProp.length>15 && state.channels.length>8 && state.costs.length>8,
+    listFrom(state.mustHave).length>=2 && state.launchWeeks>=4,
+    state.prototypeSpec.length>100,
+    state.buildSpec.length>300,
+    state.brandName.length>2 && state.tagline.length>5,
+    state.betaPlan.length>20 && state.launchPlan.length>30,
+    quality().filter(x=>x[0]==="bad").length===0
+  ];
+  return rules[i];
+}
+function complete(i){
+  if(!canComplete(i)){alert("This station has not passed its quality gate yet.");return}
+  if(!state.completed.includes(i))state.completed.push(i);
+  if(i<9)state.current=i+1;
+  save();
+}
+function generatedValueProp(){
+  const outcome=state.outcome||"deliver a measurable business outcome";
+  return `${state.brandName||"This startup"} helps ${state.customer||"a defined customer"} ${outcome.toLowerCase()} by replacing ${state.currentAlternative||"the current manual approach"} with a focused ${state.idea||"AI-enabled solution"}.`;
+}
+function makePrototypeSpec(){
+  const features=listFrom(state.mustHave);
+  const pages=["Executive Dashboard",...features.map(f=>f.replace(/^./,c=>c.toUpperCase())),"Settings"];
+  const entities=["User","Organization",...features.slice(0,4).map(f=>f.split(" ")[0].replace(/[^a-z]/gi,""))].filter((x,i,a)=>x&&a.indexOf(x)===i);
+  state.prototypeSpec=`PRODUCT PURPOSE
+${state.idea}
+
+PRIMARY USER
+${state.user||state.customer}
+
+CORE WORKFLOW
+1. User signs in or opens the guided workspace.
+2. User provides the required inputs for ${features[0]||"the primary task"}.
+3. The system validates the inputs and applies the product logic.
+4. The system presents a decision, recommendation, or generated artifact.
+5. The user saves, exports, or shares the result.
+
+REQUIRED PAGES
+${pages.map(x=>"- "+x).join("\n")}
+
+CORE FEATURES
+${features.map(x=>"- "+x).join("\n")}
+
+DATA ENTITIES
+${entities.map(x=>"- "+x).join("\n")}
+
+INTEGRATIONS
+${state.integrations||"No external integrations required for prototype."}
+
+DATA SENSITIVITY
+${state.dataSensitivity}
+
+RESPONSIVE EXPERIENCE
+Desktop-first SaaS workspace with a mobile-safe single-column fallback.
+
+DEMO REQUIREMENTS
+Use realistic sample data. Every visible button must work. No dead pages, no “coming soon,” and no unsupported performance claims.`;
+  save();
+}
+function makeBuildSpec(){
+  const features=listFrom(state.mustHave);
+  const stack=state.dataSensitivity==="High"?
+    "Next.js 15, TypeScript, Tailwind CSS, Firebase Auth, Firestore with strict security rules, server-side API routes":
+    "Next.js 15, TypeScript, Tailwind CSS, Firebase Auth, Firestore, Vercel";
+  state.buildSpec=`DEEPSEEK / KIMI / CODEX BUILD INSTRUCTION
+
+Build a polished, working SaaS prototype named ${state.brandName||"the product"}.
+
+PRODUCT
+${state.idea}
+
+PROBLEM
+${state.problem}
+
+TARGET CUSTOMER
+${state.customer}
+
+VALUE PROPOSITION
+${state.valueProp||generatedValueProp()}
+
+MVP SCOPE
+${state.mvpScope||features.join(", ")}
+
+TECHNOLOGY
+${stack}
+
+REQUIRED FEATURES
+${features.map((f,i)=>`${i+1}. ${f}`).join("\n")}
+
+PRODUCT LOGIC
+- Preserve dependencies between user inputs and downstream outputs.
+- Recalculate scores, recommendations, and financial outputs immediately after edits.
+- Label founder assumptions, calculated estimates, and externally validated facts separately.
+- Do not invent market statistics, legal claims, customer proof, or revenue outcomes.
+- Use browser local storage for the showroom prototype unless a backend is explicitly required.
+- Include Reset Demo Data and Load Demo Data controls.
+
+PAGES
+${state.prototypeSpec}
+
+DESIGN
+Professional light-theme SaaS interface. Use clear information hierarchy, generous spacing, rounded cards, restrained shadows, and accessible contrast. Do not use neon effects, excessive gradients, placeholder copy, or fake testimonials.
+
+QUALITY STANDARD
+Every button must work. Every form must save. Every generated artifact must use the user’s current startup data. No generic canned responses. No dead navigation. No “Coming Soon.”
+
+DELIVERABLE
+Create a complete index.html prototype and README.md suitable for direct Vercel deployment.`;
+  save();
+}
+function renderNav(){
+  document.getElementById("stationNav").innerHTML=stations.map((s,i)=>{
+    const locked=i>0&&!state.completed.includes(i-1);
+    return `<div class="station ${state.current===i?"active":""} ${state.completed.includes(i)?"done":""} ${locked?"locked":""}" data-station="${i}">
+      <div class="num">${state.completed.includes(i)?"✓":i+1}</div><div><b>${s[0]}</b><small>${s[1]}</small></div></div>`;
+  }).join("");
+  document.querySelectorAll("[data-station]").forEach(el=>el.onclick=()=>{
+    const i=+el.dataset.station;
+    if(i===0||state.completed.includes(i-1)||state.completed.includes(i)){state.current=i;save()}
+  });
+}
+function stationHeader(i){
+  return `<div class="station-head"><div><h2>Station ${i+1}: ${stations[i][0]}</h2><p>${stations[i][1]}</p></div>
+  <span class="badge ${state.completed.includes(i)?"good":"warn"}">${state.completed.includes(i)?"Passed":"In progress"}</span></div>`;
+}
+function renderStation(){
+  const i=state.current; let body="";
+  if(i===0) body=`${stationHeader(i)}<div class="grid2">
+    <div>${field("idea","Startup idea","textarea","Describe the product in plain language.")}${field("problem","Problem being solved","textarea","What happens today, who suffers, and what does it cost?")}${field("customer","Target customer","text","Be specific: industry, company size, role, geography.")}</div>
+    <div>${field("budget","Available prototype budget","number")}${field("experience","Founder experience","select","",["Beginner","Intermediate","Advanced"])}${field("outcome","Desired business outcome","textarea","State a measurable result.")}<div class="callout">The factory will use budget, complexity, evidence, and customer type to constrain the downstream MVP.</div></div></div>`;
+  if(i===1) body=`${stationHeader(i)}<div class="grid2">
+    <div>${field("evidenceType","Strongest evidence","select","",["None","Customer interviews","Survey responses","Usage data","Paid pilot or preorders"])}${field("evidenceDetails","Evidence details","textarea","What did customers actually say or do?")}${field("interviews","Number of customer interviews","number")}</div>
+    <div>${field("willingness","Willingness to pay","select","",["Unknown","Unlikely","Possible","Likely","Confirmed"])}
+      <div class="analysis-card"><h3>Evidence score</h3><div class="score-big">${evidenceScore()}%</div><div class="bar"><div class="fill" style="width:${evidenceScore()}%"></div></div>
+      <p class="small">A written idea is an assumption. Interviews, behavioral data, or payment evidence raise confidence.</p></div></div></div>`;
+  if(i===2) body=`${stationHeader(i)}<div class="grid2"><div>${field("buyer","Economic buyer","text","Who approves or pays?")}${field("user","Primary user","text","Who uses the product day to day?")}${field("painFrequency","Pain frequency","select","",["Rarely","Monthly","Weekly","Daily","Continuous"])}</div>
+    <div>${field("currentAlternative","Current alternative","textarea","Spreadsheets, manual labor, another SaaS, outsourcing, doing nothing.")}${field("decisionTrigger","Purchase trigger","textarea","What event makes the buyer act now?")}</div></div>`;
+  if(i===3) body=`${stationHeader(i)}<div class="grid2"><div>${field("valueProp","Value proposition","textarea","What measurable value does the product create?")}${field("revenueModel","Revenue model","select","",["Subscription SaaS","Usage-based","Setup + monthly","License","Transaction fee","Service + software"])}</div>
+    <div>${field("price","Starting monthly price","number")}${field("channels","Acquisition channels","textarea","How will the first 25 customers find you?")}${field("costs","Major cost drivers","textarea","Development, API usage, support, sales, compliance, hosting.")}</div></div>
+    <button class="btn secondary" id="suggestValue">Generate grounded value proposition</button>`;
+  if(i===4){
+    const recommended=Math.max(4,Math.round((state.complexity/100)*12+(state.dataSensitivity==="High"?4:0)));
+    body=`${stationHeader(i)}<div class="grid2"><div>${field("mustHave","Must-have MVP features","textarea","One feature per line. Keep this to 2–5.")}${field("niceToHave","Later features","textarea","Features intentionally excluded from MVP.")}</div>
+    <div>${field("complexity","Technical complexity","range")}${field("launchWeeks","Target launch timeline in weeks","number")}
+    <div class="callout ${state.launchWeeks<recommended?"warn":""}"><strong>Dependency check:</strong> Based on complexity, the recommended minimum prototype window is <strong>${recommended} weeks</strong>.</div></div></div>`;
+  }
+  if(i===5) body=`${stationHeader(i)}<div class="grid2"><div>${field("integrations","Required integrations","textarea","Stripe, Firebase, Google Calendar, Twilio, CRM, etc.")}${field("dataSensitivity","Data sensitivity","select","",["Low","Moderate","High"])}</div>
+    <div class="analysis-card"><h3>Architecture constraints</h3>
+      <div class="quality-item ${state.dataSensitivity==="High"?"warn":"good"}">${state.dataSensitivity==="High"?"High-sensitivity data requires authentication, access controls, logging, and careful storage design.":"Current data sensitivity is compatible with a lightweight showroom prototype."}</div>
+      <div class="quality-item ${state.budget<10000&&state.complexity>65?"bad":"good"}">${state.budget<10000&&state.complexity>65?"Budget is too low for the current complexity.":"Budget and complexity are not in direct conflict."}</div>
+      <button class="btn primary" id="genProto">Generate Product Architecture</button></div></div>
+    ${state.prototypeSpec?`<div class="artifact"><h3>Generated Product Architecture</h3><pre>${esc(state.prototypeSpec)}</pre></div>`:""}`;
+  if(i===6) body=`${stationHeader(i)}<div class="callout">This station converts the validated product decisions into implementation instructions. It does not invent market data or customer proof.</div>
+    <button class="btn primary" id="genBuild">Generate Build Specification</button>
+    ${state.buildSpec?`<div class="artifact"><h3>Implementation-Ready Build Specification</h3><pre>${esc(state.buildSpec)}</pre></div>`:""}`;
+  if(i===7) body=`${stationHeader(i)}<div class="grid2"><div>${field("brandName","Product name","text","Clear, ownable, and relevant.")}${field("tagline","Tagline","text","Outcome-focused, not vague.")}</div>
+    <div>${field("voice","Brand voice","textarea","Example: practical, credible, candid, operator-focused.")}<div class="callout"><strong>Positioning preview:</strong><br>${esc(state.brandName||"Your product")} — ${esc(state.tagline||generatedValueProp())}</div></div></div>`;
+  if(i===8){
+    const mrr=state.price*state.projectedCustomers;
+    const ltv=state.churn>0?Math.round(state.price/(state.churn/100)):0;
+    body=`${stationHeader(i)}<div class="grid3">${field("projectedCustomers","Initial customers","number")}${field("growth","Monthly growth %","number")}${field("churn","Monthly churn %","number")}${field("cac","Customer acquisition cost","number")}${field("betaPlan","Beta plan","textarea","Who tests it, for how long, and what proves success?")}${field("launchPlan","First-customer launch plan","textarea","Specific channels, offer, follow-up, and feedback loop.")}</div>
+    <div class="grid3"><div class="analysis-card"><h3>MRR</h3><div class="score-big">$${mrr.toLocaleString()}</div></div><div class="analysis-card"><h3>Estimated LTV</h3><div class="score-big">$${ltv.toLocaleString()}</div></div><div class="analysis-card"><h3>LTV:CAC</h3><div class="score-big">${state.cac?Math.round((ltv/state.cac)*10)/10:"—"}x</div></div></div>`;
+  }
+  if(i===9){
+    const qs=quality(),bad=qs.filter(x=>x[0]==="bad").length;
+    body=`${stationHeader(i)}<div class="grid2"><div class="analysis-card"><h3>Final readiness</h3><div class="score-big">${scores().overall}%</div><p class="small">${bad?`${bad} blocking issue(s) remain.`:"No blocking contradictions remain."}</p></div>
+    <div>${qs.map(x=>`<div class="quality-item ${x[0]}">${esc(x[1])}</div>`).join("")}</div></div>
+    <div class="artifact"><h3>Factory Decision</h3><p>${bad?"NOT READY TO BUILD. Return to the flagged stations and resolve the contradictions.":"READY FOR A CONTROLLED PROTOTYPE. The concept has enough structure to produce a build-ready blueprint, but market assumptions still require real-world validation."}</p></div>`;
+  }
+  body+=`<div class="footer-actions"><button class="btn secondary" id="prevBtn" ${i===0?"disabled":""}>← Previous</button><button class="btn primary" id="passBtn">${i===9?"Pass Final Inspection":"Pass Station →"}</button></div>`;
+  document.getElementById("stationContent").innerHTML=body;
+  bindFields();
+  document.getElementById("prevBtn").onclick=()=>{if(i>0){state.current=i-1;save()}};
+  document.getElementById("passBtn").onclick=()=>complete(i);
+  if(document.getElementById("suggestValue"))document.getElementById("suggestValue").onclick=()=>{state.valueProp=generatedValueProp();save()};
+  if(document.getElementById("genProto"))document.getElementById("genProto").onclick=makePrototypeSpec;
+  if(document.getElementById("genBuild"))document.getElementById("genBuild").onclick=makeBuildSpec;
+}
+function bindFields(){
+  document.querySelectorAll("[data-field]").forEach(el=>{
+    el.oninput=e=>{
+      const id=e.target.dataset.field;
+      state[id]=e.target.type==="number"||e.target.type==="range"?Number(e.target.value):e.target.value;
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+      if(e.target.type==="range")render();
+      else updateQuality();
+    };
+  });
+}
+function updateQuality(){
+  const s=scores(); document.getElementById("topScore").textContent=s.overall+"%";
+  document.getElementById("qualityScore").textContent=s.overall+"%";
+  document.getElementById("qualityBar").style.width=s.overall+"%";
+  document.getElementById("qualityIssues").innerHTML=quality().slice(0,6).map(x=>`<div class="quality-item ${x[0]}">${esc(x[1])}</div>`).join("");
+}
+function blueprint(){
+  const s=scores();
+  document.getElementById("blueprintContent").innerHTML=`
+    <h1 style="font-size:2.3rem;margin:0 0 6px">${esc(state.brandName||"Startup Blueprint")}</h1>
+    <p style="color:var(--muted)">${esc(state.tagline||generatedValueProp())}</p>
+    <section><h2>Executive Summary</h2><p>${esc(state.idea)}</p><p><strong>Customer:</strong> ${esc(state.customer)}</p><p><strong>Problem:</strong> ${esc(state.problem)}</p></section>
+    <section><h2>Validation Status</h2><p>Evidence score: <strong>${evidenceScore()}%</strong>. Readiness score: <strong>${s.overall}%</strong>.</p><p>${esc(state.evidenceDetails||"No evidence supplied.")}</p></section>
+    <section><h2>Customer Architecture</h2><p><strong>Buyer:</strong> ${esc(state.buyer)}</p><p><strong>User:</strong> ${esc(state.user)}</p><p><strong>Current alternative:</strong> ${esc(state.currentAlternative)}</p><p><strong>Purchase trigger:</strong> ${esc(state.decisionTrigger)}</p></section>
+    <section><h2>Business Model</h2><p>${esc(state.valueProp||generatedValueProp())}</p><p><strong>Revenue model:</strong> ${esc(state.revenueModel)} at $${state.price}/month.</p><p><strong>Channels:</strong> ${esc(state.channels)}</p></section>
+    <section><h2>MVP</h2><ul>${listFrom(state.mustHave).map(x=>`<li>${esc(x)}</li>`).join("")}</ul><p><strong>Deferred:</strong> ${esc(state.niceToHave)}</p></section>
+    <section><h2>Product Architecture</h2><pre>${esc(state.prototypeSpec)}</pre></section>
+    <section><h2>Build Specification</h2><pre>${esc(state.buildSpec)}</pre></section>
+    <section><h2>Launch Model</h2><p>${esc(state.betaPlan)}</p><p>${esc(state.launchPlan)}</p></section>
+    <section><h2>Quality Control</h2>${quality().map(x=>`<div class="quality-item ${x[0]}">${esc(x[1])}</div>`).join("")}</section>`;
+  document.getElementById("blueprintModal").classList.remove("hidden");
+}
+function render(){
+  document.getElementById("landing").classList.toggle("hidden",state.started);
+  document.getElementById("app").classList.toggle("hidden",!state.started);
+  if(!state.started)return;
+  renderNav(); renderStation(); updateQuality();
+}
+function startDemo(){
+  state=freshState();
+  Object.assign(state,{
+    started:true,current:0,
+    idea:"An AI assistant that helps independent bakeries forecast wholesale demand and reduce product waste.",
+    problem:"Small bakeries frequently overproduce or underproduce because distributor orders, seasonality, promotions, and shelf life are managed in disconnected spreadsheets.",
+    customer:"Independent and regional bakeries serving wholesale distributors",
+    budget:25000,experience:"Intermediate",outcome:"Reduce avoidable production waste by 20% while improving order fulfillment",
+    evidenceType:"Customer interviews",evidenceDetails:"Five bakery operators described weekly production planning errors and asked for better demand visibility.",interviews:5,willingness:"Likely",
+    buyer:"Bakery owner or operations director",user:"Production planner",painFrequency:"Daily",
+    currentAlternative:"Spreadsheets, phone calls, and manual judgment",decisionTrigger:"Rapid distributor growth or repeated waste and stockout losses",
+    valueProp:"Help growing bakeries plan production with greater confidence by combining orders, shelf life, seasonality, and route demand in one operational forecast.",
+    revenueModel:"Setup + monthly",price:299,channels:"Direct outreach to regional bakeries, distributor referrals, and live operational demos",costs:"AI usage, forecasting data processing, onboarding, customer support, and integrations",
+    mustHave:"Order import and normalization\nDemand forecast by product\nShelf-life risk alerts\nProduction recommendation dashboard",
+    niceToHave:"Automated purchasing\nDistributor portal\nRoute optimization",complexity:68,launchWeeks:10,
+    integrations:"CSV import, optional QuickBooks, email alerts",dataSensitivity:"Moderate",
+    brandName:"BakeForecast AI",tagline:"Produce closer to demand.",voice:"Practical, operational, credible, and non-technical",
+    projectedCustomers:30,growth:8,churn:3,cac:600,
+    betaPlan:"Recruit three regional bakeries for an eight-week pilot. Measure forecast error, waste reduction, fulfillment rate, and planner time saved.",
+    launchPlan:"Use founder-led demonstrations, distributor introductions, and a quantified pilot case study to win the first 25 customers."
+  });
+  makePrototypeSpec(); makeBuildSpec();
+  state.completed=[0,1,2,3,4,5,6,7,8]; state.current=9; save();
+}
+document.getElementById("startBtn").onclick=()=>{state=freshState();state.started=true;save()};
+document.getElementById("demoBtn").onclick=startDemo;
+document.getElementById("resetBtn").onclick=()=>{if(confirm("Reset the factory?")){state=freshState();localStorage.removeItem(STORAGE_KEY);render()}};
+document.getElementById("blueprintBtn").onclick=blueprint;
+document.getElementById("closeBlueprint").onclick=()=>document.getElementById("blueprintModal").classList.add("hidden");
+document.getElementById("blueprintModal").onclick=e=>{if(e.target.id==="blueprintModal")e.currentTarget.classList.add("hidden")};
+render();
+</script>
 </body>
 </html>
